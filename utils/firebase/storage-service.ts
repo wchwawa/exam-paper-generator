@@ -389,3 +389,52 @@ export const uploadFilesWithProgress = async (
   const uploadPromises = files.map((file) => uploadFileWithProgress(file, folderId));
   return Promise.all(uploadPromises);
 };
+
+/**
+ * Get all files from a specific folder by folder ID
+ * @param folderId - ID of the folder
+ * @param basePath - base path in storage (default: 'uploads')
+ * @returns Promise with array of file metadata
+ */
+export async function getAllFilesByFolderId(folderId: string, basePath: string = 'uploads'): Promise<any[]> {
+  try {
+    console.log(`获取文件夹 ${folderId} 中的所有文件`);
+    console.log(`完整路径: ${basePath}/${folderId}`);
+    
+    const folderRef = ref(storage, `${basePath}/${folderId}`);
+    const result = await listAll(folderRef);
+    console.log(`在文件夹中找到 ${result.items.length} 个文件`);
+    
+    if (result.items.length === 0) {
+      console.log(`路径中没有找到文件: ${basePath}/${folderId}`);
+      return [];
+    }
+    
+    const filesPromises = result.items.map(async (item) => {
+      console.log(`处理文件: ${item.fullPath}`);
+      try {
+        const metadata = await getMetadata(item);
+        const url = await getDownloadURL(item);
+        
+        return {
+          name: item.name,
+          path: item.fullPath,
+          url: url,
+          size: metadata.size,
+          type: metadata.contentType || '',
+          createdAt: metadata.timeCreated
+        };
+      } catch (error) {
+        console.error(`处理文件 ${item.fullPath} 时出错:`, error);
+        return null;
+      }
+    });
+
+    const files = (await Promise.all(filesPromises)).filter(file => file !== null);
+    console.log(`成功处理 ${files.length} 个文件`);
+    return files;
+  } catch (error) {
+    console.error(`获取文件夹 ${folderId} 中的文件时出错:`, error);
+    throw error;
+  }
+}
