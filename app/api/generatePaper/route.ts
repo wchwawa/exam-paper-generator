@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { processPdfsByFolderId } from '@/services/generatePaperService';
-import { agent_call } from '@/utils/agents/agent';
-
+import { agent_call } from '@/Agents/simpleAgents/agent';
+import { callAgentCluster } from '@/Agents/advanceAgents/agentCluster';
 /**
  * 处理文件夹中的pdf文件并生成试卷
  * @param request 请求对象{folderId: string, mcqAnswerNumber: number, shortAnswerNumber: number}
@@ -9,9 +9,7 @@ import { agent_call } from '@/utils/agents/agent';
  */
 export async function POST(request: NextRequest) {
   try {
-    const { folderId 
-    
-    } = await request.json();
+    const { folderId, totalMcq, totalEssay } = await request.json();
 
     if (!folderId) {
       return NextResponse.json(
@@ -20,23 +18,24 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const results = await processPdfsByFolderId(folderId);
+    const pdfContent = await processPdfsByFolderId(folderId);
     
-    if (results.length === 0) {
+    if (pdfContent.length === 0) {
       return NextResponse.json({
         success: false,
         message: 'No PDF files found in the specified folder',
         data: []
       });
     }
-    
-    const generatedPaper = await agent_call(results);
+    const totalWeeks = Object.keys(pdfContent).length;
+    // const generatedPaper = await agent_call(pdfContent);
+    const generatedPaper = await callAgentCluster(pdfContent, totalWeeks, totalMcq, totalEssay);
     
     return NextResponse.json({
       success: true,
-      message: `Successfully processed ${results.length} PDF files and generated exam paper`,
+      message: `Successfully processed ${pdfContent.length} PDF files and generated exam paper`,
       data: {
-        examPaper: generatedPaper
+        generatedPaper: generatedPaper.testPaper
       }
     });
   } catch (error) {

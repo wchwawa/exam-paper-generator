@@ -171,70 +171,7 @@ export async function agent_call(
   const extract_prompt = EXTRACT_PROMPT;
   const question_prompt = QUESTION_PROMPT;
   const review_prompt = REVIEW_PROMPT;
-  // implement a teacher-student agent
-  // const context = `
-  //   You are a part of a AI agent that help students learn knowledge by providing exercies questions. 
-  //   I would give you a series of learning resources and you need to provide me a series of quesitons 
-  //   and answers based on the learning resources.
-  //   Your final output should be a JSON object with the following format:
-  //    {
-  //        "multiple_choice": [
-  //            {
-  //                "question": "Question content",
-  //                "options": ["A. Option 1", "B. Option 2", "C. Option 3", "D. Option 4"], 
-  //                "answer": "Correct option (e.g. A)",
-  //                "explanation": "Detailed explanation"
-  //            }
-  //            // More multiple choice questions...
-  //        ],
-  //        "essay": [
-  //            {
-  //                "question": "Question content",
-  //                "answer": "Reference answer"
-  //            }
-  //            // More essay questions...
-  //        ]
-  //    }
-    
-  // `;
 
-  // const extract_prompt = `
-  //   You are a tool of this AI Agent. Please extract the key points mentioned in the learning resources. 
-  //   Here are the learning resources:
-  // `;
-
-  // const review_prompt = `
-  //   You are a tool of this AI Agent. Please review the quesitons and answers provided by the other tools, 
-  //   decide if the quesitons and answers are correct and complete. If not, please provide some feedback 
-  //   to the other tools.
-  // `;
-
-  // const question_prompt = `
-  //   You are a tool of this AI Agent. Please provide me a series of quesitons and answers based on the 
-  //   key points extracted from the learning resources and the outputs of other tools.
-    
-  //   Please return results in the following JSON format:
-  //    {
-  //        "multiple_choice": [
-  //            {
-  //                "question": "Question content",
-  //                "options": ["A. Option 1", "B. Option 2", "C. Option 3", "D. Option 4"], 
-  //                "answer": "Correct option (e.g. A)",
-  //                "explanation": "Detailed explanation"
-  //            }
-  //            // More multiple choice questions...
-  //        ],
-  //        "essay": [
-  //            {
-  //                "question": "Question content",
-  //                "answer": "Reference answer"
-  //            }
-  //            // More essay questions...
-  //        ]
-  //    }
-     
-  //    Please ensure all questions are relevant to given topics and provide complete answers and explanations.
-  // `;
   logger.debug("Setting up agent tools");
 
 

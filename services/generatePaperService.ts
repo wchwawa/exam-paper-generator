@@ -81,9 +81,9 @@ interface FileInfo {
  * 通过文件夹ID获取并处理所有PDF文件
  * @param folderId - Storage中的文件夹ID
  * @param basePath - 基础路径，默认为'uploads'
- * @returns 处理后的PDF摘要数组
+ * @returns 按周数排序的PDF摘要对象
  */
-export async function processPdfsByFolderId(folderId: string, basePath: string = 'uploads') {
+export async function   processPdfsByFolderId(folderId: string, basePath: string = 'uploads') {
   try {
     console.log(`Start to process pdf files in folder ${folderId}`);
     console.log(`Using base path: ${basePath}`);
@@ -101,12 +101,15 @@ export async function processPdfsByFolderId(folderId: string, basePath: string =
     
     if (pdfFiles.length === 0) {
       console.log('no pdf file');
-      return [];
+      return {};
     }
+    
+    // 按文件名排序（假设文件名包含顺序信息）
+    const sortedPdfFiles = [...pdfFiles].sort((a, b) => a.name.localeCompare(b.name));
     
     // 处理每个PDF文件
     const processedFiles = await Promise.all(
-      pdfFiles.map(async (file: FileInfo) => {
+      sortedPdfFiles.map(async (file: FileInfo, index: number) => {
         try {
           console.log(`Processing pdf file: ${file.name}`);
           
@@ -122,7 +125,7 @@ export async function processPdfsByFolderId(folderId: string, basePath: string =
           const summary = await summarizePdfContent(text);
           
           return {
-            fileInfo: file,
+            index,
             summary
           };
         } catch (error) {
@@ -132,11 +135,17 @@ export async function processPdfsByFolderId(folderId: string, basePath: string =
       })
     );
     
-    // 过滤掉处理失败的文件
-    const validResults = processedFiles.filter((result): result is {fileInfo: FileInfo, summary: any} => result !== null);
-    console.log(`Successfully processed ${validResults.length} pdf files`);
+    // 过滤掉处理失败的文件并转换为所需格式
+    const result: Record<string, any> = {};
+    processedFiles
+      .filter((item): item is {index: number, summary: any} => item !== null)
+      .forEach(({index, summary}) => {
+        result[`week${index + 1}`] = summary;
+      });
     
-    return validResults;
+    console.log(`Successfully processed ${Object.keys(result).length} pdf files`);
+    
+    return result;
   } catch (error) {
     console.error(`Failed to process pdf files in folder ${folderId}:`, error);
     throw error;
