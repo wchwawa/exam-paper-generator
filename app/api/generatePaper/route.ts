@@ -32,21 +32,11 @@ export async function POST(request: NextRequest) {
     
     const generatedPaper = await agent_call(results);
     
-
-    let paperContent;
-    try {
-      paperContent = JSON.parse(generatedPaper);
-    } catch (e) {
-      paperContent = generatedPaper;
-    }
-    const examPaper = JSON.parse(paperContent.trim().replace(/^```json\n/, '').replace(/\n```$/, ''));
-    console.log(examPaper);
-    
     return NextResponse.json({
       success: true,
       message: `Successfully processed ${results.length} PDF files and generated exam paper`,
       data: {
-        examPaper: examPaper
+        examPaper: generatedPaper
       }
     });
   } catch (error) {

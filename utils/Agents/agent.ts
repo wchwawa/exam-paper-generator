@@ -10,6 +10,7 @@ import { writeFileSync, appendFileSync, existsSync, mkdirSync } from "fs";
 import path from "path";
 import { ChatOpenAI } from "@langchain/openai";
 import { CONTEXT, EXTRACT_PROMPT, QUESTION_PROMPT, REVIEW_PROMPT } from "@/constant/prompt";
+import { uploadExamPaperToFirestore } from "@/utils/firebase/storage-service";
 dotenv.config();
 
 /**
@@ -343,8 +344,34 @@ export async function agent_call(
     } else {
       logger.info("No content to save in final output");
     }
+    let res;  
+    if (finalOutput?.content) {
+      res = JSON.parse(finalOutput?.content.trim().replace(/^```json\n/, '').replace(/\n```$/, ''))
+    } else {
+      res = finalOutput;
+    }
 
-    return finalOutput?.content || "{}";
+    // upload to firestore
+    try {
+      logger.info("Uploading results to Firestore");
+    
+      const sourceFiles = processedFiles.map(file => ({
+        name: file.fileInfo.name,
+        path: file.fileInfo.path,
+        url: file.fileInfo.url
+      }));
+      
+      // 使用storage-service中的函数上传到Firestore
+      const docId = await uploadExamPaperToFirestore(res, sourceFiles);
+      logger.info(`Document written with ID: ${docId}`);
+      
+      res.documentId = docId;
+    } catch (uploadError) {
+      logger.error("Error uploading to Firestore:");
+      logger.error(uploadError);
+    }
+    
+    return res;
   } catch (error) {
     logger.error("Error during agent execution");
     logger.error(error);

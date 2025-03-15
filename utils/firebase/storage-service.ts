@@ -13,6 +13,8 @@ import { Buffer } from 'buffer';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { v4 as uuidv4 } from 'uuid';
+import { db } from './config';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 //TODO: need to implement CRUD operations for exam paper objects
 
 /**
@@ -435,6 +437,38 @@ export async function getAllFilesByFolderId(folderId: string, basePath: string =
     return files;
   } catch (error) {
     console.error(`获取文件夹 ${folderId} 中的文件时出错:`, error);
+    throw error;
+  }
+}
+
+/**
+ * 将生成的试卷上传到Firestore
+ * @param examPaperContent - 试卷内容
+ * @param sourceFiles - 源文件信息
+ * @returns 上传后的文档ID
+ */
+export async function uploadExamPaperToFirestore(
+  examPaperContent: any,
+  sourceFiles: Array<{name: string, path: string, url: string}>
+): Promise<string> {
+  try {
+    console.log("Uploading exam paper to Firestore");
+    
+    // 创建要保存的数据对象
+    const examPaperData = {
+      content: examPaperContent,
+      createdAt: serverTimestamp(),
+      sourceFiles: sourceFiles,
+      status: "completed"
+    };
+    
+    // 添加到examPapers集合
+    const docRef = await addDoc(collection(db, "examPaper"), examPaperData);
+    console.log(`Exam paper document written with ID: ${docRef.id}`);
+    
+    return docRef.id;
+  } catch (error) {
+    console.error("Error uploading exam paper to Firestore:", error);
     throw error;
   }
 }

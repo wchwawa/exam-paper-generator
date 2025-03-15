@@ -1,7 +1,6 @@
 import { pdfToText } from 'pdf-ts';
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import fs from 'fs/promises';
-import { db, storage } from '../utils/firebase/config';
 import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
 import { ref, getDownloadURL, getBytes } from 'firebase/storage';
 import { getCourseFiles, getAllFilesByFolderId } from '../utils/firebase/storage-service';
