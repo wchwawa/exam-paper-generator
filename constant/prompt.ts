@@ -143,7 +143,7 @@ export const PROMPT_PARSE_PDF_SHORT = (options: {
 
 
 
-const PROMPT_GENERATE_QUESTION_PAPER = (option?: {
+export const PROMPT_GENERATE_QUESTION_PAPER = (option?: {
   mcqNumber: number,
   shortAnswerNumber: number,
   content: JSON | any,
@@ -178,7 +178,7 @@ const PROMPT_GENERATE_QUESTION_PAPER = (option?: {
   `
 }
 
-const CONTEXT = `
+export const CONTEXT = `
 ## Role ##
 You are a part of a AI agent that help students learn knowledge by providing exercies questions. 
 
@@ -230,7 +230,7 @@ You are a part of a AI agent that help students learn knowledge by providing exe
 }
 `;
 
-const EXTRACT_PROMPT = `
+export const EXTRACT_PROMPT = `
 ## Role ##
 You are a tool of this AI Agent. 
 
@@ -244,7 +244,7 @@ Try to cover all the important knowledge points.
 Here are the learning resources:
 `;
 
-const REVIEW_PROMPT = `
+export const REVIEW_PROMPT = `
 ## Role ##
 You are a tool of this AI Agent. 
 
@@ -253,7 +253,7 @@ You are a tool of this AI Agent.
 2. If the questions and answers are not correct, please provide some feedback to the other tools.
 `;
 
-const QUESTION_PROMPT = `
+export const QUESTION_PROMPT = `
 ## Role ##
 You are a tool of this AI Agent. 
 

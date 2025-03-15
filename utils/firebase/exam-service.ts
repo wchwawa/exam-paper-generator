@@ -89,7 +89,7 @@ export const uploadExamTemplate = async (type: 'mcq' | 'short-answer' = 'mcq') =
     // 使用 setDoc 来设置特定 ID 的文档
     await setDoc(doc(examRef, templateToUpload.paperId), templateToUpload);
     
-    console.log(`${type} 试卷模板上传成功`);
+    (`${type} 试卷模板上传成功`);
     return true;
   } catch (error) {
     console.error('上传试卷模板失败:', error);

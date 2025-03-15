@@ -1,4 +1,5 @@
 import { pdfToText } from 'pdf-ts';
+import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import fs from 'fs/promises';
 import { db, storage } from '../utils/firebase/config';
 import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
@@ -13,70 +14,7 @@ const pdfStringDic: {
   [key: string]: any
 } = {};
 
-/**
- * 从 Firestore 获取 PDF 文件列表
- * @param courseId - 可选的课程 ID 过滤
- * @param limit - 限制返回的文件数量
- * @returns 返回 PDF 文件的元数据列表
- */
-export async function fetchPdfFilesFromFirestore(courseId?: string, maxResults: number = 10) {
-  try {
-    // 构建查询
-    let pdfQuery;
-    if (courseId) {
-      pdfQuery = query(
-        collection(db, 'pdfs'),
-        where('courseId', '==', courseId),
-        orderBy('uploadedAt', 'desc'),
-        limit(maxResults)
-      );
-    } else {
-      pdfQuery = query(
-        collection(db, 'pdfs'),
-        orderBy('uploadedAt', 'desc'),
-        limit(maxResults)
-      );
-    }
 
-    // 执行查询
-    const querySnapshot = await getDocs(pdfQuery);
-    const pdfFiles = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-
-    console.log(`获取到 ${pdfFiles.length} 个 PDF 文件`);
-    return pdfFiles;
-  } catch (error) {
-    console.error('获取 PDF 文件列表失败:', error);
-    throw error;
-  }
-}
-
-/**
- * 从 Storage 下载 PDF 文件并提取文本
- * @param storagePath - Storage 中的文件路径
- * @returns 提取的文本内容
- */
-export async function downloadAndExtractPdfText(storagePath: string) {
-  try {
-    // 获取文件引用
-    const fileRef = ref(storage, storagePath);
-    
-    // 下载文件为 ArrayBuffer
-    const fileBytes = await getBytes(fileRef);
-    
-    // 将 ArrayBuffer 转换为 Buffer
-    const buffer = Buffer.from(fileBytes);
-    
-    // 提取文本
-    const text = await pdfToText(buffer);
-    return text;
-  } catch (error) {
-    console.error(`从 ${storagePath} 提取 PDF 文本失败:`, error);
-    throw error;
-  }
-}
 
 /**
  * 从本地文件提取 PDF 文本
@@ -96,21 +34,6 @@ export async function extractTextFromPdf(file: File) {
   }
 }
 
-/**
- * 从本地文件路径提取 PDF 文本
- * @param filePath - 本地文件路径
- * @returns 提取的文本内容
- */
-export async function extractTextFromLocalPdf(filePath: string) {
-  try {
-    const buffer = await fs.readFile(filePath);
-    const text = await pdfToText(buffer);
-    return text;
-  } catch (error) {
-    console.error(`从 ${filePath} extract pdf file error:`, error);
-    throw error;
-  }
-}
 
 /**
  * 使用 OpenAI 总结 PDF 内容
@@ -144,21 +67,6 @@ export async function summarizePdfContent(text: string) {
   }
 }
 
-/**
- * 处理 File 对象
- * @param file - File 对象
- * @returns 处理后的 PDF 摘要
- */
-export async function processFileObject(file: File) {
-  try {
-    const text = await extractTextFromPdf(file);
-    const summary = await summarizePdfContent(text);
-    return summary;
-  } catch (error) {
-    console.error(`process file ${file.name} failed:`, error);
-    throw error;
-  }
-}
 
 // 定义文件信息接口
 interface FileInfo {

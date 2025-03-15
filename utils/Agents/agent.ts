@@ -1,8 +1,6 @@
 "use strict";
 
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { MemorySaver } from "@langchain/langgraph";
-import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { Document } from "@langchain/core/documents";
 import { tool } from "@langchain/core/tools";
 import dotenv from "dotenv";
@@ -10,7 +8,8 @@ import { z } from "zod";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { writeFileSync, appendFileSync, existsSync, mkdirSync } from "fs";
 import path from "path";
-import { CONTEXT, EXTRACT_PROMPT, QUESTION_PROMPT, REVIEW_PROMPT } from "./constant/prompt";
+import { ChatOpenAI } from "@langchain/openai";
+import { CONTEXT, EXTRACT_PROMPT, QUESTION_PROMPT, REVIEW_PROMPT } from "@/constant/prompt";
 dotenv.config();
 
 /**
@@ -143,12 +142,29 @@ class Logger {
   }
 }
 
-async function agent_call(
-  llm: ChatGoogleGenerativeAI,
-  docs: Document[],
-  logger: Logger
+/**
+ * Process PDF content and generate questions using an AI agent
+ * @param processedFiles - Array of processed PDF files with their summaries
+ * @returns JSON string containing generated questions and answers
+ */
+export async function agent_call(
+  processedFiles: Array<{fileInfo: any, summary: any}>,
 ) {
+  // Initialize logger
+  const logger = new Logger({
+    logLevel: "info",
+    logToFile: true,
+    logDir: "./logs/agents",
+  });
+
   logger.info("Initializing teacher-student agent");
+
+  const llm = new ChatOpenAI({
+    model: "gpt-4o-mini", 
+    temperature: 0,
+    maxRetries: 2,
+    apiKey: process.env.OPENAI_API_KEY,
+  });
 
   const context = CONTEXT;
   const extract_prompt = EXTRACT_PROMPT;
@@ -220,32 +236,6 @@ async function agent_call(
   // `;
   logger.debug("Setting up agent tools");
 
-  const extract_tool = tool(
-    async (input: { docs: string }) => {
-      logger.logToolCall("extract_tool", "Docs");
-
-      // Access the learning resources from the input object
-      const learningResources = input.docs;
-
-      // Invoke the LLM with the provided context and prompt
-      const response = await llm.invoke(
-        `${context}${extract_prompt}\n\n${learningResources}`
-      );
-
-      logger.logToolResponse("extract_tool", response.content);
-      return response.content;
-    },
-    {
-      name: "extract_tool",
-      description: "Extract the key points from the learning resources",
-      schema: z.object({
-        // Update the schema to expect an object with a learning_resources property
-        docs: z
-          .string()
-          .describe("The learning resources to extract key points from."),
-      }),
-    }
-  );
 
   const question_tool = tool(
     async (input: { key_points: string; questions: string }) => {
@@ -305,15 +295,15 @@ async function agent_call(
   logger.info("Creating React agent");
   const agent = createReactAgent({
     llm: llm,
-    tools: [extract_tool, question_tool, review_tool],
+    tools: [question_tool, review_tool],
     checkpointSaver: agentCheckpointer,
   });
 
-  // Convert Document objects to a string
-  const docsContent = docs
+  // Convert processed files to a string format for the agent
+  const docsContent = processedFiles
     .map(
-      (doc) =>
-        `Document: ${doc.metadata?.source || "Unknown"}\n${doc.pageContent}`
+      (file) =>
+        `Document: ${file.fileInfo.name || "Unknown"}\n${file.summary.content || file.summary.lectureContent || ""}`
     )
     .join("\n\n");
   logger.debug(`Document content length: ${docsContent.length} characters`);
@@ -336,12 +326,12 @@ async function agent_call(
     for await (const { messages } of stream) {
       let msg = messages[messages?.length - 1];
       if (msg?.content) {
-        console.log(msg.content);
+        // console.log(msg.content);
         finalOutput = msg;
       } else if (msg?.tool_calls?.length > 0) {
         console.log(msg.tool_calls);
       } else {
-        console.log(msg);
+        // console.log(msg);
         finalOutput = msg;
       }
       console.log("-----\n");
@@ -354,65 +344,10 @@ async function agent_call(
       logger.info("No content to save in final output");
     }
 
-    return JSON.stringify(finalOutput);
+    return finalOutput?.content || "{}";
   } catch (error) {
     logger.error("Error during agent execution");
     logger.error(error);
     throw error;
   }
 }
-
-async function main() {
-  // Initialize logger
-  const logger = new Logger({
-    logLevel: "info",
-    logToFile: true,
-    logDir: "./logs/agents",
-  });
-
-  logger.info("Starting agent application");
-
-  try {
-    const llm = new ChatGoogleGenerativeAI({
-      model: "gemini-1.5-pro", // Note: using gemini-pro as gemini-1.5-pro might not be available
-      temperature: 0,
-      maxRetries: 2,
-      apiKey: process.env.GOOGLE_API_KEY,
-    });
-
-    logger.info("Loading PDF documents");
-
-    // Define the PDF files to load
-    const pdfFiles = [
-      "./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf",
-      "./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf",
-      "./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf",
-    ];
-
-    // Load all PDF files and combine their documents
-    let allDocs: Document[] = [];
-    for (const pdfFile of pdfFiles) {
-      const loader = new PDFLoader(pdfFile);
-      const docs = await loader.load();
-      logger.info(`Loaded ${docs.length} pages from ${pdfFile}`);
-      allDocs.push(...docs);
-    }
-
-    logger.info(`Loaded a total of ${allDocs.length} pages from all PDFs`);
-
-    const result = await agent_call(llm, allDocs, logger);
-
-    if (result) {
-      logger.info("Application completed successfully");
-    } else {
-      logger.error("Application failed");
-    }
-  } catch (error) {
-    logger.error("Application failed with error");
-    logger.error(error);
-  }
-}
-
-main().catch((error) => {
-  console.error("Unhandled exception:", error);
-});
