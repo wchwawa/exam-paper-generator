@@ -181,7 +181,40 @@ export default function PaperView() {
       <style>
         {`
             body {
-                background-color: #f8f8f8;`}
+                background-color: #f8f8f8;
+            }
+            @media print {
+              body {
+                background-color: white !important;
+                margin: 0;
+                padding: 0;
+              }
+              @page {
+                margin: 2cm;
+                size: A4;
+              }
+              .no-print {
+                display: none !important;
+              }
+              .print-content {
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+              }
+              .question-card {
+                break-inside: avoid;
+                page-break-inside: avoid;
+                margin-bottom: 1.5rem;
+                border: none !important;
+                box-shadow: none !important;
+              }
+              .page-header {
+                position: static !important;
+                box-shadow: none !important;
+                margin-bottom: 2rem;
+              }
+            }
+        `}
       </style>
       <Box
         zIndex={99}
@@ -192,6 +225,7 @@ export default function PaperView() {
         w="100%"
         borderRadius="md"
         boxShadow="md"
+        className="page-header"
       >
         <Heading>Data Structure and Algorithm</Heading>
         <Group spaceX={2}>
@@ -210,7 +244,7 @@ export default function PaperView() {
           w={"100%"}
           px={4}
           py={3}
-          className="bg-white flex-1"
+          className="bg-white flex-1 print-content"
         >
           <Heading size="2xl" mb={6}>
             Data Structure And Algorithm Practice Exam
@@ -222,15 +256,36 @@ export default function PaperView() {
 
               if (question.questionType === "mcq") {
                 return (
-                  <MCQ
-                    key={question.questionId}
-                    title={question.questionTitle}
-                    options={question.mcqOptions.map((opt) => ({
-                      title: opt.optionTitle,
-                      value: opt.optionId,
-                      explanation: opt.explanation,
-                    }))}
+                  <Box key={question.questionId} className="question-card">
+                    <MCQ
+                      title={`${index + 1}. ${question.questionTitle}`}
+                      options={question.mcqOptions.map((opt) => ({
+                        title: opt.optionTitle,
+                        value: opt.optionId,
+                        explanation: opt.explanation,
+                      }))}
+                      hint={question.hint}
+                      explanation={
+                        progress?.isRevealed ? question.explanation : undefined
+                      }
+                      onAnswer={(answer) =>
+                        answerQuestion(question.questionId, answer)
+                      }
+                      userAnswer={progress?.userAnswer}
+                      correctAnswer={
+                        progress?.isRevealed ? question.answer : undefined
+                      }
+                      isRevealed={progress?.isRevealed}
+                    />
+                  </Box>
+                );
+              }
+
+              return (
+                <Box key={question.questionId} className="question-card">
+                  <SimpleAnswerQuestion
                     hint={question.hint}
+                    title={`${index + 1}. ${question.questionTitle}`}
                     explanation={
                       progress?.isRevealed ? question.explanation : undefined
                     }
@@ -238,31 +293,18 @@ export default function PaperView() {
                       answerQuestion(question.questionId, answer)
                     }
                     userAnswer={progress?.userAnswer}
-                    correctAnswer={
-                      progress?.isRevealed ? question.answer : undefined
-                    }
-                    isRevealed={progress?.isRevealed}
                   />
-                );
-              }
-
-              return (
-                <SimpleAnswerQuestion
-                  hint={question.hint}
-                  key={question.questionId}
-                  title={question.questionTitle}
-                  explanation={
-                    progress?.isRevealed ? question.explanation : undefined
-                  }
-                  onAnswer={(answer) =>
-                    answerQuestion(question.questionId, answer)
-                  }
-                  userAnswer={progress?.userAnswer}
-                />
+                </Box>
               );
             })}
 
-            <Box mt={8} pt={4} borderTop="1px solid" borderColor="gray.200">
+            <Box
+              mt={8}
+              pt={4}
+              borderTop="1px solid"
+              borderColor="gray.200"
+              className="no-print"
+            >
               <Button
                 size="lg"
                 colorScheme="blue"
@@ -274,7 +316,7 @@ export default function PaperView() {
             </Box>
           </section>
         </Box>
-        <Box pos="relative">
+        <Box pos="relative" className="no-print">
           <Box
             pos="sticky"
             top={24}
