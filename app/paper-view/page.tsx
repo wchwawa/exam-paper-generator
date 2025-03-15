@@ -1,4 +1,5 @@
 import MCQ from "@/components/questions/mcq";
+import SimpleAnswerQuestion from "@/components/questions/simple-answer";
 import {
   Box,
   Button,
@@ -82,6 +83,8 @@ export default function PaperView() {
                 { title: "JavaScript", value: "D" },
               ]}
             />
+
+            <SimpleAnswerQuestion title="How to implement a binary tree?" />
           </section>
         </Box>
         <Box pos="relative">
