@@ -215,34 +215,7 @@ export default function Home() {
             py={2}
             justifyContent="space-between"
           >
-            <Box w="180px">
-              <Select.Root
-                size="md"
-                collection={questionTypes}
-                multiple
-                value={selectedQuestionTypes}
-              >
-                <Select.HiddenSelect />
-
-                <Select.Control>
-                  <Select.Trigger>
-                    <Select.ValueText placeholder="Select Question Type" />
-                  </Select.Trigger>
-                </Select.Control>
-                <Portal>
-                  <Select.Positioner>
-                    <Select.Content>
-                      {questionTypes.items.map((item) => (
-                        <Select.Item key={item.value} item={item}>
-                          {item.label}
-                          <Select.ItemIndicator />
-                        </Select.Item>
-                      ))}
-                    </Select.Content>
-                  </Select.Positioner>
-                </Portal>
-              </Select.Root>
-            </Box>
+            <Box w="180px"></Box>
 
             <Button
               onClick={handleGenerate}
@@ -258,16 +231,3 @@ export default function Home() {
     </Box>
   );
 }
-
-const questionTypes = createListCollection({
-  items: [
-    {
-      label: "Multiple Choice",
-      value: "mcq",
-    },
-    {
-      label: "Short Answer",
-      value: "short_answer",
-    },
-  ],
-});
