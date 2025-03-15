@@ -8,7 +8,7 @@ interface Question {
   questionType: "mcq" | "short-answer";
   answer?: string;
   explanation?: string;
-  tips?: string;
+  hint?: string;
   mcqOptions?: Array<{
     optionId: string;
     optionTitle: string;

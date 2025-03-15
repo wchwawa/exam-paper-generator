@@ -6,28 +6,29 @@ import { Alert } from "@chakra-ui/react";
 
 const SimpleAnswerQuestion: FC<{
   title: string;
-  tips?: string;
+  hints?: string;
   explanation?: string;
   onAnswer?: (answer: string) => void;
   userAnswer?: string | null;
-}> = ({ title, tips, explanation, onAnswer, userAnswer }) => {
+  hint: string;
+}> = ({ title, hint, explanation, onAnswer, userAnswer }) => {
   return (
     <Box mt={2}>
       <Text mt={2} fontSize="lg" className=" text-gray-500">
         Question1
       </Text>
       <Text fontSize="xl">{title}</Text>
-      {explanation && (
+      {hint && (
         <Accordion.Root collapsible>
           <Accordion.Item value="1">
             <Accordion.ItemTrigger>
               <Flex flex="1">
-                <IconInfoCircle /> Explanation
+                <IconInfoCircle /> hint
               </Flex>
               <Accordion.ItemIndicator />
             </Accordion.ItemTrigger>
             <Accordion.ItemContent>
-              <Text>{explanation}</Text>
+              <Text>{hint}</Text>
             </Accordion.ItemContent>
           </Accordion.Item>
         </Accordion.Root>
@@ -45,12 +46,12 @@ const SimpleAnswerQuestion: FC<{
         value={userAnswer || ""}
         onChange={(e) => onAnswer?.(e.target.value)}
       />
-      {tips && (
+      {explanation && (
         <Alert.Root status="error">
           <Alert.Indicator />
           <Alert.Content>
-            <Alert.Title>Tips</Alert.Title>
-            <Alert.Description>{tips}</Alert.Description>
+            <Alert.Title>hint</Alert.Title>
+            <Alert.Description>{explanation}</Alert.Description>
           </Alert.Content>
         </Alert.Root>
       )}

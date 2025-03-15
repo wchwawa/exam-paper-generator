@@ -2,11 +2,12 @@
 
 import { Accordion, Alert, Box, Flex, Grid, Text } from "@chakra-ui/react";
 import { IconInfoCircle } from "@tabler/icons-react";
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 
 const MCQOption: FC<{
   title: string;
   value: string;
+  hint: string;
   status?: "correct" | "incorrect";
   isSelected?: boolean;
   onClick?: () => void;
@@ -70,24 +71,29 @@ const MCQOption: FC<{
 
 interface MCQProps {
   title: string;
-  options: { title: string; value: string }[];
-  tips?: string;
+  options: { title: string; value: string; explanation: string }[];
+  hint?: string;
   explanation?: string;
   onAnswer?: (answer: string) => void;
   userAnswer?: string | null;
   correctAnswer?: string;
+  isRevealed?: boolean;
 }
 
 export default function MCQ({
   title,
   options,
-  tips,
-  explanation,
+  hint,
   onAnswer,
   userAnswer,
   correctAnswer,
+  isRevealed,
 }: MCQProps) {
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
+
+  // Find the selected option's explanation
+  const selectedExplanation =
+    selectedOption !== null ? options[selectedOption].explanation : "";
 
   return (
     <Box mt={2}>
@@ -95,17 +101,17 @@ export default function MCQ({
         Question1
       </Text>
       <Text fontSize="xl">{title}</Text>
-      {explanation && (
+      {hint && (
         <Accordion.Root collapsible>
           <Accordion.Item value="1">
             <Accordion.ItemTrigger>
               <Flex flex="1">
-                <IconInfoCircle /> Explanation
+                <IconInfoCircle /> Hint
               </Flex>
               <Accordion.ItemIndicator />
             </Accordion.ItemTrigger>
             <Accordion.ItemContent>
-              <Text>{explanation}</Text>
+              <Text>{hint}</Text>
             </Accordion.ItemContent>
           </Accordion.Item>
         </Accordion.Root>
@@ -118,10 +124,11 @@ export default function MCQ({
         {options.map((option, index) => (
           <MCQOption
             key={index}
+            hint={option.explanation}
             title={option.title}
             value={option.value}
             status={
-              correctAnswer
+              correctAnswer && isRevealed
                 ? option.value === correctAnswer
                   ? "correct"
                   : option.value === userAnswer &&
@@ -139,12 +146,12 @@ export default function MCQ({
         ))}
       </Grid>
 
-      {tips && (
-        <Alert.Root mt={2} status="error">
+      {selectedExplanation && isRevealed && (
+        <Alert.Root status="error">
           <Alert.Indicator />
           <Alert.Content>
-            <Alert.Title>Tips</Alert.Title>
-            <Alert.Description>{tips}</Alert.Description>
+            <Alert.Title>Explanation</Alert.Title>
+            <Alert.Description>{selectedExplanation}</Alert.Description>
           </Alert.Content>
         </Alert.Root>
       )}

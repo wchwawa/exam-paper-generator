@@ -5,19 +5,20 @@ type MCQOption = {
   optionId: string;
   optionTitle: string;
   optionValue: string;
+  explanation: string; //explanation
 };
 
 type BaseQuestion = {
   questionId: string;
   questionTitle: string;
   userAnswer?: string;
-  explanation?: string;
+  hint: string;
 };
 
 type MCQQuestion = BaseQuestion & {
   questionType: "mcq";
   answer: string;
-  tips?: string;
+
   mcqOptions: MCQOption[];
 };
 

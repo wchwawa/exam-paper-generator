@@ -26,14 +26,40 @@ const exampleQuestions = [
       "Which programming language is known for its simplicity and readability?",
     questionType: "mcq" as const,
     answer: "A",
-    explanation:
-      "Python is widely recognized for its clean syntax and readability, making it an excellent choice for beginners.",
-    tips: "Think about which language emphasizes readability in its design philosophy.",
+
+    hint: "Think about which language emphasizes readability in its design philosophy.",
     mcqOptions: [
-      { optionId: "A", optionTitle: "Python", optionValue: "Python" },
-      { optionId: "B", optionTitle: "Java", optionValue: "Java" },
-      { optionId: "C", optionTitle: "C++", optionValue: "C++" },
-      { optionId: "D", optionTitle: "JavaScript", optionValue: "JavaScript" },
+      {
+        optionId: "A",
+        optionTitle: "Python",
+        optionValue: "Python",
+        explanation:
+          "Python's design philosophy emphasizes code readability with its notable use of significant whitespace and clean syntax.",
+      },
+      {
+        optionId: "B",
+        optionTitle: "Java",
+        optionValue: "Java",
+        explanation:
+          "While Java is widely used, its syntax is more verbose compared to Python, requiring more boilerplate code.",
+        hint: "Java's syntax requires explicit type declarations and more ceremony.",
+      },
+      {
+        optionId: "C",
+        optionTitle: "C++",
+        optionValue: "C++",
+        explanation:
+          "C++ is a powerful language but is known for its complexity and steep learning curve.",
+        hint: "C++ provides low-level control but at the cost of simplicity.",
+      },
+      {
+        optionId: "D",
+        optionTitle: "JavaScript",
+        optionValue: "JavaScript",
+        explanation:
+          "JavaScript has flexible syntax but can be confusing due to its quirks and type coercion.",
+        hint: "JavaScript's flexibility can sometimes lead to unexpected behavior.",
+      },
     ],
   },
   {
@@ -43,20 +69,47 @@ const exampleQuestions = [
     answer: "B",
     explanation:
       "Binary search repeatedly divides the search space in half, resulting in a logarithmic time complexity.",
-    tips: "Consider how many steps it takes to find an element as the input size grows.",
+    hint: "Consider how many steps it takes to find an element as the input size grows.",
     mcqOptions: [
-      { optionId: "A", optionTitle: "O(n)", optionValue: "O(n)" },
-      { optionId: "B", optionTitle: "O(log n)", optionValue: "O(log n)" },
-      { optionId: "C", optionTitle: "O(n²)", optionValue: "O(n²)" },
-      { optionId: "D", optionTitle: "O(1)", optionValue: "O(1)" },
+      {
+        optionId: "A",
+        optionTitle: "O(n)",
+        optionValue: "O(n)",
+        explanation:
+          "Linear search has O(n) complexity as it needs to check each element in the worst case.",
+        hint: "This is the complexity of checking every element one by one.",
+      },
+      {
+        optionId: "B",
+        optionTitle: "O(log n)",
+        optionValue: "O(log n)",
+        explanation:
+          "Binary search achieves O(log n) by halving the search space in each step.",
+        hint: "Think about how many times you can divide n by 2 before reaching 1.",
+      },
+      {
+        optionId: "C",
+        optionTitle: "O(n²)",
+        optionValue: "O(n²)",
+        explanation:
+          "Quadratic complexity is typically seen in nested loops, not in binary search.",
+        hint: "This complexity is too high for a search algorithm.",
+      },
+      {
+        optionId: "D",
+        optionTitle: "O(1)",
+        optionValue: "O(1)",
+        explanation:
+          "Constant time complexity is not possible for searching in an unsorted array.",
+        hint: "This would mean finding the element instantly, regardless of array size.",
+      },
     ],
   },
   {
+    hint: "Think about which language emphasizes readability in its design philosophy.",
     questionId: "q3",
     questionTitle: "How to implement a binary tree?",
     questionType: "short-answer" as const,
-    explanation:
-      "A binary tree can be implemented using a node class with left and right child pointers, and a value field.",
   },
 ];
 
@@ -175,8 +228,9 @@ export default function PaperView() {
                     options={question.mcqOptions.map((opt) => ({
                       title: opt.optionTitle,
                       value: opt.optionId,
+                      explanation: opt.explanation,
                     }))}
-                    tips={progress?.isRevealed ? question.tips : undefined}
+                    hint={progress?.userAnswer ? question.hint : undefined}
                     explanation={
                       progress?.isRevealed ? question.explanation : undefined
                     }
@@ -187,12 +241,14 @@ export default function PaperView() {
                     correctAnswer={
                       progress?.isRevealed ? question.answer : undefined
                     }
+                    isRevealed={progress?.isRevealed}
                   />
                 );
               }
 
               return (
                 <SimpleAnswerQuestion
+                  hint={question.hint}
                   key={question.questionId}
                   title={question.questionTitle}
                   explanation={
