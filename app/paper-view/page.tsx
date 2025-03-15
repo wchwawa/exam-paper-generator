@@ -3,6 +3,7 @@
 import MCQ from "@/components/questions/mcq";
 import SimpleAnswerQuestion from "@/components/questions/simple-answer";
 import { useQuestionStore } from "@/store/questionStore";
+import { usePdfGenerator } from "../hooks/usePdfGenerator";
 import {
   Box,
   Button,
@@ -12,8 +13,10 @@ import {
   Heading,
   Switch,
   Tag,
+  Text,
+  Spinner,
 } from "@chakra-ui/react";
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 
 // Example questions data
 const exampleQuestions = [
@@ -67,10 +70,58 @@ export default function PaperView() {
     getQuestionProgress,
   } = useQuestionStore();
 
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const { generatePdf, isGenerating } = usePdfGenerator();
+
   // Initialize questions when component mounts
   useEffect(() => {
     loadQuestions("example-paper", exampleQuestions);
   }, []);
+
+  // Timer effect
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+    if (isTimerRunning) {
+      intervalId = setInterval(() => {
+        setElapsedTime((prev) => prev + 1);
+      }, 1000);
+    }
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [isTimerRunning]);
+
+  // Format time as MM:SS
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, "0")}:${remainingSeconds
+      .toString()
+      .padStart(2, "0")}`;
+  };
+
+  const handleTimerToggle = () => {
+    setIsTimerRunning(!isTimerRunning);
+  };
+
+  const handleMarkPaper = () => {
+    setIsTimerRunning(false);
+    revealMarking();
+  };
+
+  const handleDownloadPdf = async () => {
+    if (contentRef.current) {
+      await generatePdf(
+        contentRef,
+        "Data Structure And Algorithm Practice Exam",
+        exampleQuestions
+      );
+    }
+  };
 
   return (
     <Box>
@@ -101,7 +152,13 @@ export default function PaperView() {
       </Box>
 
       <Flex px={12} gapX={18} py={24}>
-        <Box w={"100%"} px={4} py={3} className="bg-white flex-1">
+        <Box
+          ref={contentRef}
+          w={"100%"}
+          px={4}
+          py={3}
+          className="bg-white flex-1"
+        >
           <Heading size="2xl" mb={6}>
             Data Structure And Algorithm Practice Exam
           </Heading>
@@ -154,9 +211,7 @@ export default function PaperView() {
                 size="lg"
                 colorScheme="blue"
                 width="100%"
-                onClick={() => {
-                  revealMarking();
-                }}
+                onClick={handleMarkPaper}
               >
                 Mark Paper
               </Button>
@@ -180,11 +235,28 @@ export default function PaperView() {
             gap={4}
           >
             <Heading size="md">Actions</Heading>
-            <Button colorScheme="blue" w="100%">
-              Start Timed Practice
+            <Button
+              colorScheme={isTimerRunning ? "red" : "blue"}
+              w="100%"
+              onClick={handleTimerToggle}
+            >
+              {isTimerRunning
+                ? `Stop Practice (${formatTime(elapsedTime)})`
+                : "Start Timed Practice"}
             </Button>
-            <Button variant="outline" w="100%">
-              Download as PDF
+            {!isTimerRunning && elapsedTime > 0 && (
+              <Text fontSize="sm" textAlign="center" color="gray.600">
+                Time spent: {formatTime(elapsedTime)}
+              </Text>
+            )}
+            <Button
+              variant="outline"
+              w="100%"
+              onClick={handleDownloadPdf}
+              disabled={isGenerating}
+            >
+              {isGenerating && <Spinner size="sm" mr={2} />}
+              {isGenerating ? "Generating PDF..." : "Download as PDF"}
             </Button>
             <Box borderBottom="1px solid" borderColor="gray.200" />
             <Switch.Root
