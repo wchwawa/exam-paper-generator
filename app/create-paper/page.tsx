@@ -40,7 +40,7 @@ export default function CreatePaper() {
 
   const onSubmit = async (data: CreatePaperForm) => {
     router.push(
-      `/loading-view?folderId=${folderUid}&mcqAnswerNumber=${data.mcqAnswerNumber}&shortAnswerNumber=${data.shortAnswerNumber}`
+      `/paper-view?folderId=${folderUid}&mcqAnswerNumber=${data.mcqAnswerNumber}&shortAnswerNumber=${data.shortAnswerNumber}`
     );
   };
 

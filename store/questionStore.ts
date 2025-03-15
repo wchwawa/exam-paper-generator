@@ -5,6 +5,7 @@ import { type Question } from "./paperStore";
 interface QuestionProgress {
   questionId: string;
   userAnswer: string | null;
+  answer?: string;
   originalQuestion: Question;
   isRevealed: boolean;
 }

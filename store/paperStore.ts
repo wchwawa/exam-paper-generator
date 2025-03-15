@@ -24,6 +24,7 @@ type MCQQuestion = BaseQuestion & {
 
 type ShortAnswerQuestion = BaseQuestion & {
   questionType: "short-answer";
+  answer: string;
 };
 
 export type Question = MCQQuestion | ShortAnswerQuestion;
