@@ -5,12 +5,14 @@ import {
   getDownloadURL,
   deleteObject,
   listAll,
-  getMetadata
+  getMetadata,
+  uploadBytesResumable
 } from 'firebase/storage';
 import { UploadItem } from '@/types/storage';
 import { Buffer } from 'buffer';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+import { v4 as uuidv4 } from 'uuid';
 //TODO: need to implement CRUD operations for exam paper objects
 
 /**
@@ -333,4 +335,57 @@ export const downloadAllFilesAsZip = async (
     console.error('Failed to create ZIP file:', error);
     throw error;
   }
+};
+
+/**
+ * Upload a file with progress tracking
+ * @param file - file to upload
+ * @param folderId - optional folder id
+ * @returns Promise with download URL
+ */
+export const uploadFileWithProgress = async (
+  file: File,
+  folderId?: string
+): Promise<string> => {
+  const path = folderId
+    ? `uploads/${folderId}/${file.name}`
+    : `uploads/${uuidv4()}_${file.name}`;
+
+  const storageRef = ref(storage, path);
+  const uploadTask = uploadBytesResumable(storageRef, file);
+
+  return new Promise((resolve, reject) => {
+    uploadTask.on(
+      "state_changed",
+      (snapshot) => {
+        // Track upload progress if needed
+        const progress =
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        console.log("Upload is " + progress + "% done");
+      },
+      (error) => {
+        // Handle errors
+        reject(error);
+      },
+      async () => {
+        // Upload completed successfully
+        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+        resolve(downloadURL);
+      }
+    );
+  });
+};
+
+/**
+ * Upload multiple files to the same folder with progress tracking
+ * @param files - array of files to upload
+ * @param folderId - folder id
+ * @returns Promise with array of download URLs
+ */
+export const uploadFilesWithProgress = async (
+  files: File[],
+  folderId: string
+): Promise<string[]> => {
+  const uploadPromises = files.map((file) => uploadFileWithProgress(file, folderId));
+  return Promise.all(uploadPromises);
 };

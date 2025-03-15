@@ -17,7 +17,7 @@ import {
 } from "@chakra-ui/react";
 import { v4 as uuidv4 } from "uuid";
 import { useRouter } from "next/navigation";
-import { uploadFiles } from "@/lib/firebase";
+import { uploadFilesWithProgress } from "@/utils/firebase/storage-service";
 
 export default function Home() {
   const router = useRouter();
@@ -91,7 +91,7 @@ export default function Home() {
         }
 
         // Upload all files to the same folder
-        await uploadFiles(files, uploadFolderId);
+        await uploadFilesWithProgress(files, uploadFolderId);
 
         // Navigate to results page with folder ID
         router.push(

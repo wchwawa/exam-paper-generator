@@ -101,21 +101,20 @@ export default function MCQ({
         Question1
       </Text>
       <Text fontSize="xl">{title}</Text>
-      {hint && (
-        <Accordion.Root collapsible>
-          <Accordion.Item value="1">
-            <Accordion.ItemTrigger>
-              <Flex flex="1">
-                <IconInfoCircle /> Hint
-              </Flex>
-              <Accordion.ItemIndicator />
-            </Accordion.ItemTrigger>
-            <Accordion.ItemContent>
-              <Text>{hint}</Text>
-            </Accordion.ItemContent>
-          </Accordion.Item>
-        </Accordion.Root>
-      )}
+
+      <Accordion.Root collapsible>
+        <Accordion.Item value="1">
+          <Accordion.ItemTrigger>
+            <Flex flex="1">
+              <IconInfoCircle /> Hint
+            </Flex>
+            <Accordion.ItemIndicator />
+          </Accordion.ItemTrigger>
+          <Accordion.ItemContent>
+            <Text>{hint}</Text>
+          </Accordion.ItemContent>
+        </Accordion.Item>
+      </Accordion.Root>
 
       <Text color="gray.500" mt={3}>
         Select the correct answer
@@ -146,15 +145,18 @@ export default function MCQ({
         ))}
       </Grid>
 
-      {selectedExplanation && isRevealed && (
-        <Alert.Root status="error">
-          <Alert.Indicator />
-          <Alert.Content>
-            <Alert.Title>Explanation</Alert.Title>
-            <Alert.Description>{selectedExplanation}</Alert.Description>
-          </Alert.Content>
-        </Alert.Root>
-      )}
+      {selectedExplanation &&
+        isRevealed &&
+        userAnswer &&
+        userAnswer !== correctAnswer && (
+          <Alert.Root mt={2} status="error">
+            <Alert.Indicator />
+            <Alert.Content>
+              <Alert.Title>Explanation</Alert.Title>
+              <Alert.Description>{selectedExplanation}</Alert.Description>
+            </Alert.Content>
+          </Alert.Root>
+        )}
     </Box>
   );
 }
