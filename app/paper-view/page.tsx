@@ -1,3 +1,4 @@
+import MCQ from "@/components/questions/mcq";
 import {
   Box,
   Button,
@@ -43,29 +44,73 @@ export default function PaperView() {
           <Heading size="2xl">
             Data Structure And Algorithm Practice Exam
           </Heading>
+
+          <section className="flex flex-col gap-5">
+            <MCQ
+              title=""
+              options={[
+                { title: "Python", value: "A" },
+                { title: "Java", value: "B" },
+                { title: "C++", value: "C" },
+                { title: "JavaScript", value: "D" },
+              ]}
+            />
+            <MCQ
+              title=""
+              options={[
+                { title: "Python", value: "A" },
+                { title: "Java", value: "B" },
+                { title: "C++", value: "C" },
+                { title: "JavaScript", value: "D" },
+              ]}
+            />
+            <MCQ
+              title=""
+              options={[
+                { title: "Python", value: "A" },
+                { title: "Java", value: "B" },
+                { title: "C++", value: "C" },
+                { title: "JavaScript", value: "D" },
+              ]}
+            />
+            <MCQ
+              title=""
+              options={[
+                { title: "Python", value: "A" },
+                { title: "Java", value: "B" },
+                { title: "C++", value: "C" },
+                { title: "JavaScript", value: "D" },
+              ]}
+            />
+          </section>
         </Box>
-        <Box
-          px={2}
-          py={2}
-          border="1px solid"
-          bg="white"
-          rounded="md"
-          borderColor="gray.300"
-          w={"360px"}
-          gapY={2}
-          display={"flex"}
-          flexDirection={"column"}
-        >
-          <Heading size="md">Actions</Heading>
-          <Button w="100%">Start Timed Practice</Button>
-          <Button variant="outline" w="100%">
-            Download as PDF
-          </Button>
-          <Switch.Root mt={1}>
-            <Switch.HiddenInput />
-            <Switch.Control />
-            <Switch.Label>Show Answers</Switch.Label>
-          </Switch.Root>
+        <Box pos="relative">
+          <Box
+            pos="sticky"
+            top={24}
+            px={2}
+            py={2}
+            border="1px solid"
+            bg="white"
+            rounded="md"
+            borderColor="gray.300"
+            w={"360px"}
+            h={"fit-content"}
+            gapY={2}
+            display={"flex"}
+            flexDirection={"column"}
+          >
+            <Heading size="md">Actions</Heading>
+            <Button w="100%">Start Timed Practice</Button>
+            <Button variant="outline" w="100%">
+              Download as PDF
+            </Button>
+            <Switch.Root mt={1}>
+              <Switch.HiddenInput />
+              <Switch.Control />
+              <Switch.Label>Show Answers</Switch.Label>
+            </Switch.Root>
+          </Box>
         </Box>
       </Flex>
     </Box>
