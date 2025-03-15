@@ -9,6 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@langchain/community": "^0.3.35",
+    "@langchain/core": "^0.3.42",
+    "@langchain/google-genai": "^0.1.11",
+    "@langchain/langgraph": "^0.2.55",
+    "@langchain/openai": "^0.4.4",
+    "dotenv": "^16.4.7",
     "@chakra-ui/react": "^3.13.0",
     "@emotion/react": "^11.14.0",
     "@radix-ui/react-slot": "^1.1.2",
@@ -22,6 +28,12 @@
     "jszip": "^3.10.1",
     "lucide-react": "^0.482.0",
     "next": "15.2.2",
+    "pdf-parse": "^1.1.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "ts-node": "^10.9.2",
+    "tslab": "^1.0.22",
+    "zod": "^3.24.2"
     "next-themes": "^0.4.6",
     "pdf-ts": "^0.0.2",
     "react": "^19.0.0",
