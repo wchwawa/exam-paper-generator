@@ -95,9 +95,9 @@ class Logger {
     }
   }
 
-  logToolCall(toolName: string, input: any): void {
+  logToolCall(toolName: string, inputs: any): void {
     this.info(`Tool Call: ${toolName}`);
-    this.debug({ tool: toolName, input });
+    this.debug({ inputs });
   }
 
   logToolResponse(toolName: string, response: any): void {
@@ -143,49 +143,6 @@ class Logger {
   }
 }
 
-async function read_pdf(
-  docs: Document[],
-  llm: ChatGoogleGenerativeAI,
-  logger: Logger
-) {
-  logger.info(`Processing ${docs.length} PDF documents`);
-
-  // Convert PDF content to base64 string
-  const base64Docs = docs.map((doc: Document) => {
-    const pageContent = doc.pageContent;
-    return Buffer.from(pageContent).toString("base64");
-  });
-
-  // Concatenate all base64 strings
-  const concatenatedBase64 = base64Docs.join("");
-  logger.debug(`Base64 encoded content length: ${concatenatedBase64.length}`);
-
-  try {
-    logger.info("Requesting PDF summary from LLM");
-    const res = await llm.invoke([
-      [
-        "system",
-        "You are a helpful assistant that summarizes the content of the pdf. Summarize the content of the pdf.",
-      ],
-      ["human", concatenatedBase64],
-    ]);
-
-    logger.info("PDF summary received");
-    logger.debug(res);
-
-    // Save the summary to a file
-    if (res.content) {
-      logger.saveOutput("pdf_summary.txt", res.content.toString());
-    }
-
-    return res;
-  } catch (error) {
-    logger.error("Failed to summarize PDF");
-    logger.error(error);
-    throw error;
-  }
-}
-
 async function agent_call(
   llm: ChatGoogleGenerativeAI,
   docs: Document[],
@@ -194,20 +151,74 @@ async function agent_call(
   logger.info("Initializing teacher-student agent");
 
   // implement a teacher-student agent
-  const context =
-    "You are a part of a AI agent that help students learn knowledge by providing exercies questions. I would give you a series of learning resources and you need to provide me a series of quesitons and answers based on the learning resources. ";
-  const extract_prompt =
-    "You are a tool of this AI Agent. Please extract the key points mentioned in the learning resources. Here are the learning resources: ";
-  const question_prompt =
-    "You are a tool of this AI Agent. Please provide me a series of quesitons and answers based on the key points extracted from the learning resources and the outputs of other tools. ";
-  const review_prompt =
-    "You are a tool of this AI Agent. Please review the quesitons and answers provided by the other tools, decide if the quesitons and answers are correct and complete. If not, please provide some feedback to the other tools. ";
+  const context = `
+    You are a part of a AI agent that help students learn knowledge by providing exercies questions. 
+    I would give you a series of learning resources and you need to provide me a series of quesitons 
+    and answers based on the learning resources.
+    Your final output should be a JSON object with the following format:
+     {
+         "multiple_choice": [
+             {
+                 "question": "Question content",
+                 "options": ["A. Option 1", "B. Option 2", "C. Option 3", "D. Option 4"], 
+                 "answer": "Correct option (e.g. A)",
+                 "explanation": "Detailed explanation"
+             }
+             // More multiple choice questions...
+         ],
+         "essay": [
+             {
+                 "question": "Question content",
+                 "answer": "Reference answer"
+             }
+             // More essay questions...
+         ]
+     }
+    
+  `;
 
+  const extract_prompt = `
+    You are a tool of this AI Agent. Please extract the key points mentioned in the learning resources. 
+    Here are the learning resources:
+  `;
+
+  const review_prompt = `
+    You are a tool of this AI Agent. Please review the quesitons and answers provided by the other tools, 
+    decide if the quesitons and answers are correct and complete. If not, please provide some feedback 
+    to the other tools.
+  `;
+
+  const question_prompt = `
+    You are a tool of this AI Agent. Please provide me a series of quesitons and answers based on the 
+    key points extracted from the learning resources and the outputs of other tools.
+    
+    Please return results in the following JSON format:
+     {
+         "multiple_choice": [
+             {
+                 "question": "Question content",
+                 "options": ["A. Option 1", "B. Option 2", "C. Option 3", "D. Option 4"], 
+                 "answer": "Correct option (e.g. A)",
+                 "explanation": "Detailed explanation"
+             }
+             // More multiple choice questions...
+         ],
+         "essay": [
+             {
+                 "question": "Question content",
+                 "answer": "Reference answer"
+             }
+             // More essay questions...
+         ]
+     }
+     
+     Please ensure all questions are relevant to given topics and provide complete answers and explanations.
+  `;
   logger.debug("Setting up agent tools");
 
   const extract_tool = tool(
     async (input: { docs: string }) => {
-      logger.logToolCall("extract_tool", input);
+      logger.logToolCall("extract_tool", "Docs");
 
       // Access the learning resources from the input object
       const learningResources = input.docs;
@@ -295,7 +306,12 @@ async function agent_call(
   });
 
   // Convert Document objects to a string
-  const docsContent = docs.map((doc) => doc.pageContent).join("\n\n");
+  const docsContent = docs
+    .map(
+      (doc) =>
+        `Document: ${doc.metadata?.source || "Unknown"}\n${doc.pageContent}`
+    )
+    .join("\n\n");
   logger.debug(`Document content length: ${docsContent.length} characters`);
 
   logger.info("Starting agent execution");
@@ -326,17 +342,12 @@ async function agent_call(
       }
       console.log("-----\n");
     }
-    // Save the final output
-    if (finalOutput.messages && finalOutput.messages.length > 0) {
-      const lastMessage = finalOutput.messages[finalOutput.messages.length - 1];
-      if (lastMessage.content) {
-        const outputContent =
-          typeof lastMessage.content === "string"
-            ? lastMessage.content
-            : JSON.stringify(lastMessage.content);
-        logger.saveOutput("agent_output.txt", outputContent);
-        return outputContent;
-      }
+    // Save final output to file
+    if (finalOutput?.content) {
+      logger.info("Saving final output to file");
+      logger.saveOutput("output.txt", finalOutput.content);
+    } else {
+      logger.info("No content to save in final output");
     }
 
     return JSON.stringify(finalOutput);
@@ -365,21 +376,33 @@ async function main() {
       apiKey: process.env.GOOGLE_API_KEY,
     });
 
-    logger.info("LLM initialized with model: gemini-1.5-pro");
+    logger.info("Loading PDF documents");
 
-    // Test connection to ensure API key is valid
+    // Define the PDF files to load
+    const pdfFiles = [
+      "./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf",
+      "./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf",
+      "./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf",
+    ];
 
-    logger.info("Loading PDF document");
-    const loader = new PDFLoader(
-      "./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf"
-    );
-    const docs = await loader.load();
-    logger.info(`Loaded ${docs.length} pages from PDF`);
+    // Load all PDF files and combine their documents
+    let allDocs: Document[] = [];
+    for (const pdfFile of pdfFiles) {
+      const loader = new PDFLoader(pdfFile);
+      const docs = await loader.load();
+      logger.info(`Loaded ${docs.length} pages from ${pdfFile}`);
+      allDocs.push(...docs);
+    }
 
-    // await read_pdf(docs, llm, logger);
-    const result = await agent_call(llm, docs, logger);
+    logger.info(`Loaded a total of ${allDocs.length} pages from all PDFs`);
 
-    logger.info("Application completed successfully");
+    const result = await agent_call(llm, allDocs, logger);
+
+    if (result) {
+      logger.info("Application completed successfully");
+    } else {
+      logger.error("Application failed");
+    }
   } catch (error) {
     logger.error("Application failed with error");
     logger.error(error);

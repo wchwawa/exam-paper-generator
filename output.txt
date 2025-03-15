@@ -1,0 +1,3235 @@
+[2025-03-15T05:59:13.658Z] [INFO] Logging session started: 2025-03-15T05-59-13-657Z
+[2025-03-15T05:59:13.658Z] [INFO] Starting agent application
+[2025-03-15T05:59:13.658Z] [INFO] Loading PDF documents
+[2025-03-15T05:59:13.778Z] [INFO] Loaded 44 pages from ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+[2025-03-15T05:59:13.826Z] [INFO] Loaded 85 pages from ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+[2025-03-15T05:59:13.851Z] [INFO] Loaded 56 pages from ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+[2025-03-15T05:59:13.851Z] [INFO] Loaded a total of 185 pages from all PDFs
+[2025-03-15T05:59:13.851Z] [INFO] Initializing teacher-student agent
+[2025-03-15T05:59:13.852Z] [INFO] Using thread ID: thread-1742018353852-rlsimhf
+[2025-03-15T05:59:13.852Z] [INFO] Creating React agent
+[2025-03-15T05:59:13.854Z] [INFO] Starting agent execution
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+1
+COMP5045 –  Computational Geometry
+Course page: Ed
+Lecturer: Joachim Gudmundsson
+  Head of School office
+  Level 2, School of CS (J12)
+  joachim.gudmundsson@sydney.edu.au 
+  Ph. 9351 4494 
+Tutor:  Lindsey Deryckere
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+2
+Course book:
+     M. de Berg, O. Cheong, M. van Kreveld and M. Overmars
+     Computational Geometry: Algorithms and Application
+     Springer-Verlag (2
+nd
+ or 3
+rd
+ edition)
+Outline:
+      13 lectures Thursdays 2-4pm
+      4 assignments (~4 questions/assignment)
+      Written exam [40% required to pass] 
+Tutorials:
+      Thursdays 4-5pm in Civil Eng Seminar Room 304 
+      Fridays 4-5pm in Mechanical Eng Seminar Room 2 S226
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+3
+Assessment:
+      Each assignment 17.5% (total 70%)
+      Written exam 30%
+      
+      Handing in late is not accepted = 0 points
+      Assignments submitted via Canvas as pdf (no handwriting!)
+ 
+Collaboration:
+      General ideas –  Ye s !
+      Formulation and writing –  No!
+  Read Academic Dishonesty and Plagiarism.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+Preliminary schedule
+›Lecture 1: The Art gallery problem
+›Lecture 2:    Sweepline technique: triangulation & segment intersection
+›Lecture 3:   Sweepline technique: Convex hulls          
+›Lecture 4:    Linear programming and probabilistic analysis
+›Lecture 5:     Orthogonal range searching I: kd-trees and range trees
+›Lecture 6:     Orthogonal range searching II:fractional cascading and interval trees
+›Lecture 7:    Voronoi diagrams and Delaunay triangulation 
+›Lecture 8:      Arrangements and duality 
+›Lecture 9:    Planar point location
+›Lecture 10:  Approximation Algorithms: Applications of the WSPD
+›Lecture 11:    Curve similarity
+›Lecture 12:    TBA
+›Lecture 13: Recap
+4
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+5
+Assumed Knowledge
+›Proof techniques:
+-Proof of contradiction, Induction proof...
+-See also Sections 1.2-3 in "Introduction to Theory of Computations
+"
+    [Maheshwari and Smid] 
+›Basic data structures
+-Binary search trees, lists, queues, stacks, graphs...
+›Algorithms
+-Techniques: greedy and D&C
+-Sorting, searching, depth-first search, breadth-first search...
+›big-O/big-Omega notations, basic analysis, recursion...
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+6
+Brief History: Algorithms and CG
+Algorithms:
+   300 BC: Euclid designed an algorithm for GCD.
+   780 AD: al-Khowarizmi –  the word “Algorithm” is derived from his name. 
+   ...
+   Babbage, Cantor, Hilbert, Church, Gödel
+   ...
+   1936: Turing developed a machine that provides a formal and 
+            rigorous definition of an algorithm 
+Computational Geometry:
+   1644: Descartes wrote about Voronoi diagrams
+   1759: Euler & Vandermonde discussed Euclidean TSP
+   1978: Shamos wrote his thesis which defines the start of modern CG
+   1985: Preparata & Shamos wrote the first CG textbook 
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+7
+What is computational geometry?
+The study of algorithms to solve problems stated in terms of geometry.
+The problems we study are defined in a metric space!
+For every two points x and y in the metric space, there is a function 
+g(x,y) ≥ 0 which gives the distance between them as a nonnegative real 
+number. A metric space must also satisfy 
+1.g(x,y) = 0 iff x = y, 
+2.g(x,y) = g(y,x), and 
+3.the triangle inequality must hold g(x,y) + g(y,z) ≥ g(x,z). 
+We will mainly consider the Euclidean metric (L
+2
+-metric).
+x
+y
+z
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+8
+Why computational geometry?
+Certain problems are inherently geometric:
+• Point location
+• Range searching
+• Motion planning
+• ...
+Other problems are just much easier 
+to solve if we use the underlying metric:
+• Travelling Salesman Problem
+• Nearest neighbour 
+• ...
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+9
+Computational Geometry
+Polygon Triangulation and 
+    The Art Gallery Problem
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+10
+The Art Gallery problem
+Question: 
+How many guards are needed to 
+guard an art gallery?
+                                                   
+       
+            Victor Klee posed this problem 
+            to Václav Chvátal in 1973.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+11
+Art Gallery - definitions
+Input: An Art Gallery =
+          A simple polygon with n line segments
+Polygon:  A region of the plane bounded by a set of 
+              straight line segments forming a closed curve.
+Simple:  A polygon which does not self-intersect and        
+doesn’t have any holes. 
+edges
+vertices
+
+
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+12
+Art Gallery
+Guard: (camera, motion sensors, fire detectors, ...)
+        - 2π range visibility
+        - infinite distance
+        - cannot see through walls
+        - cannot move
+       x can see y iff – (x,y) ⊆ P
+x
+y
+z
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+13
+Art Gallery
+Question: How many guards are needed to guard an art gallery?
+n=6
+G(n) = the smallest number of guards that suffice to 
+          guard any polygon with n vertices. 
+      Is G(n) 
+≤ n?  If we place one guard on each vertex?
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+14
+A lower bound
+n=3
+n=4
+n=5
+n=6
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+15
+A lower bound
+n=6
+n=9
+n=3k
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+16
+A conjecture
+We have shown: G(n) ≥ n/3
+Conjecture: G(n) = n/3
+                Proved by Chvátal in 1975. 
+“Steve Fisk learned of Klee's question from Chvátal's article, 
+but found the proof unappealing. He continued thinking about 
+the problem and came up with a solution while dozing off on a 
+bus travelling somewhere in Afghanistan.”
+An elegant proof was given by Fisk in 1978.
+                                 Included in “Proofs from the book”.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+17
+A first upper bound
+Prove that G(n) ≤ n-2.
+• Decompose P into pieces that are easy to guard. 
+   For example triangles!
+• How can we use a triangulation of P to place a set of guards?
+ 
+#guards = #triangles
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+18
+Guard triangle
+Why is a triangle easy to guard?
+A triangle is convex.
+Definition of convex set:    
+An object isconvexif for every pair of points within the object, 
+every point on thestraight linesegment that joins them is also 
+within the object.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+19
+Direct proof
+Why is a triangle easy to guard?
+A triangle is convex.
+Definition of convex set:    
+An object isconvexif for every pair of points p and q within the 
+object, p can see q.
+Every  convex set can be 
+guarded by one guard.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+20
+Proof by contradiction
+Assume the opposite!
+There exists two points within the triangle that cannot see each other.
+But that contradicts the definition of a convex set
+         ⇒ Every pair of points must see each other!
+QED
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+21
+A first upper bound
+Prove that G(n) ≤ n-2.
+• Decompose P into pieces that are easy to guard. 
+   For example triangles!
+• How can we use a triangulation of P to place a set of guards?
+ 
+#guards = #triangles
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+22
+Triangulation
+A triangulation can be obtained by adding a maximal number
+of non-intersecting diagonals within P.
+A diagonal of P is a line 
+segment between two vertices 
+of P that are visible to each 
+other.
+ 
+BUT! 
+1.Does a triangulation always exist?
+2.  What is the number of triangles?
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+23
+Number of triangles
+Does a triangulation always exist?
+Is there always a diagonal?
+Lemma: Every simple polygon with >3 vertices has a diagonal. 
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+Constructive proof
+Does a triangulation always exist?
+Is there always a diagonal?
+Lemma: Every simple polygon with >3 vertices has a diagonal. 
+Aconstructive proofis a proofthat demonstrates the 
+existence  of    a mathematical  object by  creating such 
+an object.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+25
+Constructive proof
+Does a triangulation always exist?
+Is there always a diagonal?
+Lemma: Every simple polygon with >3 vertices has a diagonal. 
+v
+a
+b
+v
+a
+b
+v
+a
+b
+q
+QED
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+26
+Number of triangles
+Theorem: Every simple polygon admits a triangulation.
+Proof by induction (over the number of vertices):
+Base case: 
+          n=3
+Induction hyp.:
+                 n<m
+Induction step:
+               n=m
+<n
+<n
+QED
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+27
+Number of triangles
+Theorem: Every triangulation of P of n vertices 
+                consists of x triangles.
+Conjecture:   x = n-2
+What’s x?
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+28
+Number of triangles
+Proof by induction:
+Base case (n = 3):
+Ind. hyp. (n < m):     n-2 triangles
+Ind. step (n=m):
+P1
+P2
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+29
+Number of triangles
+According to ind. hyp.
+    #triangles in P1 is m1-2
+    #triangles in P2 is m2-2
+P1
+P2
+|P1| = m1 < n
+|P2| = m2 < n
+m1+m2 = n + 2
+(m1-2) + (m2-2) = m1 + m2 - 4 = n – 2                        QED
+Theorem: Every triangulation of P consists of n-2 triangles.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+30
+Back to the Art Gallery
+How do we place the guards?
+G(n) ≤ #guards = #triangles = n-2 
+G(n) ≥ n/3
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+31
+3-colouring
+Idea: Assign a colour to each vertex such that no two adjacent
+          vertices have the same colour. 
+#yellow = 7
+#green = 5
+#red = 6
+⇒    #guards ≤ n/3         Why?
+Place guards on the green vertices.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+32
+3-colouring
+Does a 3-colouring always exist?
+Definition: Three consecutive vertices a, b and c of P form an
+                  ear of P if ac is a diagonal of P, where b is the ear tip. 
+ear
+ear
+tip
+tip
+a
+b
+c
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+33
+3-colouring
+Theorem: Every polygon with n>3 vertices has 
+                at least two non-overlapping ears.
+Consider the dual D(T) of 
+the triangulation T.
+D(T) is a (binary) tree. Why?
+Every tree with at least two nodes has at least two vertices 
+of degree 1    ⇒   T has at least two ears. 
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+34
+3-colouring
+Theorem: The triangulation of a simple polygon can 
+                always be 3-coloured.
+Proof by induction:
+Base case (n=3):
+Ind. hyp. (n<m):
+Ind. step (n=m):
+Polygon has an ear.
+QED
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+35
+Main results
+Theorem: 
+1.Every simple polygon can be 
+triangulated. 
+2.The triangulation of a simple 
+polygon can be 3-coloured.
+3.Every simple polygon with n 
+vertices can be guarded with 
+n/3 guards.
+     A triangulation exists but how 
+can we compute it?
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+36
+Questions
+1.Construct a simple polygon P and a placement of guards such that 
+the guards see every point of the perimeter of P, but there is at 
+least one point interior to P not seen by any guard. 
+2.Construct a polygon P and a watchman route of a guard such that 
+the guard sees the perimeter of P but there is at least one point 
+interior to P not seen.
+3.Open problem
+      Conjecture by Toussaint’81: 
+ Except for a few polygons, n/4 edge guards are always 
+sufficient to guard any polygon with n vertices.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+37
+Questions
+4.What about a polygon with n vertices and h holes?                                    
+Shermer’82: (n+h)/3 guards are sometimes necessary.    
+O’Rourke’82: (n+2h)/3 guards are always sufficient.  
+Conjecture: (n+h)/3 is a tight bound.
+5.The problem of finding the smallest number of guards is NP-hard 
+[Lee and Lin’86] and APX-hard [Eidenbenz’02]. There exists an 
+O(log n)-approximation algorithm for vertex guards with running 
+time O(n
+5
+). [Gosh’10].
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+38
+Triangulation algorithm 1
+Theorem: Every polygon has a diagonal.
+Algorithm 1:
+ while P not triangulated do 
+  (x,y) := find_valid_diagonal(P)
+  output (x,y)
+Time complexity:
+  #iterations = O(n)
+  #diagonals = O(n
+2
+)
+  Test a diagonal = O(n)  ⇒    O(n
+4
+) 
+Testing a diagonal:   O(n)      Why?
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+39
+Triangulation algorithm 2
+Theorem: Every polygon has at least two non-overlapping ears.
+Algorithm 2:
+ while n > 3 do
+  locate a valid ear tip v2
+  output diagonal (v1,v3)
+  delete v2 from P
+n-3
+O(n
+2
+)
+O(1)
+O(1)
+Total: O(n
+3
+)
+ 
+ 
+v2
+v3
+v1
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+40
+Triangulation algorithm 3
+Algorithm 3:
+ compute all valid ears S
+ while n > 3 do
+  locate a valid ear tip v2
+  output diagonal (v1,v3)
+  delete v2 from P
+  delete (v0,v1,v2) from S
+  delete (v2,v3,v4) from S
+  check ear (v0,v1,v3) 
+  check ear (v1,v3,v4)
+O(n
+2
+)
+n-3
+O(1)
+O(1)
+O(1)
+O(n)
+O(n)
+O(n)
+O(n)
+Total: O(n
+2
+)
+ 
+ 
+v0
+v1
+v2
+v3
+v4
+v5
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+41
+Triangulation algorithm 4
+Observation: Some polygons are very easy to triangulate.
+Convex polygons
+Y-monotone 
+polygons
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+42
+Polygon triangulation 4
+Algorithm 4:  [Lecture 2]
+   Partition P into y-monotone pieces O(n log n) 
+Triangulate every y-monotone polygon O(n)
+Theorem: Every simple polygon can be triangulated in O(n log n) time.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+43
+Polygon triangulation 
+›O(n log n) time [Garey, Johnson, Preparata & Tarjan’78]
+›O(n loglog n)  [Tarjan & van Wijk’88]
+› O(n log* n)  [Clarkson et al.’89]
+› O(n)    [Chazelle’91]
+› O(n) randomised [Amato, Goodrich & Ramos’00]
+Open problem: Is there a simple O(n)-time algorithm?
+
+Document: ./utils/Agents/dataset/Computational Geometry/Art Gallery Lecture 1 Feb 27.pdf
+44
+Summary
+• Every simple polygon with n vertices 
+   can be decomposed into n-2 triangles.
+• Every triangulated simple polygon can 
+   be 3-colourable.
+• Every simple polygon can be “guarded” 
+   by n/3 guards, and n/3 guards is 
+   sometimes necessary.
+• To find a guard set our algorithm 
+   requires a triangulation.
+ O(n
+2
+) time algorithm
+    O(n log n) time algorithm [Lecture 2]
+ 
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+1
+COMMONWEALTH OF AUSTRALIA
+Copyright Regulations 1969
+WARNING
+This material has been reproduced and communicated to you by or on 
+behalf of the University of Sydney pursuant to Part VB of the Copyright 
+Act 1968 (the Act). The material in this communication may be subject 
+to copyright under the Act. Any further copying or communication of this 
+material by you may be the subject of copyright  protection under the 
+Act.
+Do not remove this notice.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+2
+Computational Geometry
+The sweep-line technique
+(Segment Intersection and Polygon Triangulation) 
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+3
+Recall
+• Every simple polygon has a diagonal.
+• Every simple polygon with n vertices 
+   can be decomposed into n-2 triangles.
+• Every triangulated simple polygon can 
+   be 3-colourable, which can easily be 
+computed greedily.
+• Every simple polygon can always be 
+“guarded” by n/3 guards, and n/3 
+guards is sometimes necessary.
+• To find a guard set our algorithm 
+   requires a triangulation.
+ 
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+Ideas for a triangulation algorithm?
+4
+?
+⇒
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+5
+Triangulation algorithm 1
+Theorem: Every polygon has a diagonal.
+Algorithm 1:
+ while P not triangulated do 
+  (x,y) := find_valid_diagonal(P)
+  output (x,y)
+Time complexity:
+  Test a diagonal = O(n) 
+  #diagonals = O(n
+2
+) 
+  #iterations = O(n)       ⇒   O(n
+4
+) 
+Number of potential diagonals? 
+Testing one potential diagonal?   
+O(n
+2
+)
+O(n)
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+6
+Assumption: 10
+9
+ instructions per second
+Input size: 1 million points = 10
+6
+ points
+          ⇒ running time ~ n
+4
+/10
+9
+ = 10
+15
+ seconds ~ 32 million years
+#points in 1 second:  180 points
+Algorithm 1: running time
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+7
+Triangulation algorithm 2
+Theorem: Every polygon has at least two non-overlapping ears.
+Algorithm 2:
+ while n > 3 do
+  locate a valid ear tip v2
+  output diagonal (v1,v3)
+  delete v2 from P
+n-3
+O(n
+2
+)
+O(1)
+O(1)
+Total: O(n
+3
+)
+ 
+ 
+v2
+v3
+v1
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+8
+Triangulation algorithm 2
+Theorem: Every polygon has at least two non-overlapping ears.
+Algorithm 2:
+ while n > 3 do
+  locate a valid ear tip v2
+  output diagonal (v1,v3)
+  delete v2 from P
+n-3
+O(n
+2
+)
+O(1)
+O(1)
+Total: O(n
+3
+)
+ 
+ 
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+9
+Assumption: 10
+9
+ instructions per second
+Input size: 1 million points = 10
+6
+ points
+          ⇒ running time ~ n
+3
+/10
+9
+ = 10
+9
+ seconds ~ 32 years
+#points in 1 second:  1000 points
+Algorithm 2: running time
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+10
+Why is triangulation algorithm 2 slow?
+Can we speed up Algorithm 2?
+Algorithm 2:
+ while n > 3 do
+  locate a valid ear tip v2
+  output diagonal (v1,v3)
+  delete v2 from P
+n-3
+O(n
+2
+)
+O(1)
+O(1)
+Total: O(n
+3
+)
+ 
+ 
+v2
+v3
+v1
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+11
+Triangulation algorithm 3
+Algorithm 3:
+ compute all valid ears S
+ while n > 3 do
+  locate a valid ear tip v2
+  output diagonal (v1,v3)
+  delete v2 from P
+  delete (v0,v1,v2) from S
+  delete (v2,v3,v4) from S
+  check ear (v1,v3,v4) 
+  check ear (v0,v1,v3)
+O(n
+2
+)
+n-3
+O(1)
+O(1)
+O(1)
+O(n)
+O(n)
+O(n)
+O(n)
+Total: O(n
+2
+)
+ 
+ 
+v0
+v1
+v3
+v4
+v5
+v2
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+12
+Assumption: 10
+9
+ instructions per second
+Input size: 1 million points = 10
+6
+ points
+          ⇒ running time ~ n
+2
+/10
+9
+ = 10
+3
+ seconds ~ 17 minutes
+#points in 1 second:  30,000 points
+Algorithm 3: running time
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+Convex polygons
+13
+Triangulation algorithm 4
+Observation: Some polygons are very easy to triangulate.
+Y-monotone 
+polygons
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+14
+Polygon triangulation 4
+Algorithm 4:
+  Partition P into y-monotone pieces.  O(n log n)
+  Triangulate every y-monotone polygon O(n)
+We’re going to develop sweepline algorithms for both problems
+Theorem: Every simple polygon can be triangulated 
+                in O(n log n) time.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+15
+Sweepline algorithms
+Detour into sweepline algorithms
+(we’ll get back to polygon triangulation later in the lecture)
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+Depth of interval
+Given a set S of n intervals (in 1D) compute the depth of S.
+The depth of S is the maximum number of intervals passing over 
+any point.
+16
+⇒       depth=4
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+Depth of interval
+How can we compute the depth? 
+The problem can be solved in O(n log n) using a sweepline 
+approach. Imagine “sweeping” a vertical line from left to right 
+while maintaining the current depth.
+17
+depth = 0depth = 1
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+How can we compute the depth? 
+The problem can be solved in O(n log n) using a sweepline 
+approach. Imagine “sweeping” a vertical line from left to right 
+while maintaining the current depth.
+Depth of interval
+18
+depth = 0depth = 1depth = 2
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+depth = 2depth = 3
+Depth of interval
+19
+How can we compute the depth? 
+The problem can be solved in O(n log n) using a sweepline 
+approach. Imagine “sweeping” a vertical line from left to right 
+while maintaining the current depth.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+depth = 3depth = 4
+Depth of interval
+20
+How can we compute the depth? 
+The problem can be solved in O(n log n) using a sweepline 
+approach. Imagine “sweeping” a vertical line from left to right 
+while maintaining the current depth.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+depth = 4depth = 3
+Depth of interval
+21
+How can we compute the depth? 
+The problem can be solved in O(n log n) using a sweepline 
+approach. Imagine “sweeping” a vertical line from left to right 
+while maintaining the current depth.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+depth = 3depth = 2
+Depth of interval
+22
+How can we compute the depth? 
+The problem can be solved in O(n log n) using a sweepline 
+approach. Imagine “sweeping” a vertical line from left to right 
+while maintaining the current depth.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+depth = 2depth = 1
+Depth of interval
+23
+How can we compute the depth? 
+The problem can be solved in O(n log n) using a sweepline 
+approach. Imagine “sweeping” a vertical line from left to right 
+while maintaining the current depth.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+depth = 1depth = 2
+Depth of interval
+24
+How can we compute the depth? 
+The problem can be solved in O(n log n) using a sweepline 
+approach. Imagine “sweeping” a vertical line from left to right 
+while maintaining the current depth.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+depth = 2depth = 1
+Depth of interval
+25
+How can we compute the depth? 
+The problem can be solved in O(n log n) using a sweepline 
+approach. Imagine “sweeping” a vertical line from left to right 
+while maintaining the current depth.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+depth = 1depth = 0
+Depth of interval
+26
+How can we compute the depth? 
+The problem can be solved in O(n log n) using a sweepline 
+approach. Imagine “sweeping” a vertical line from left to right 
+while maintaining the current depth.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+If we can keep track of the current depth then we can easily also find the 
+maximal depth.
+The points where a change of depth may occur are called the event points 
+⇒ endpoints of the intervals
+The sweepline status is the information stored with the sweepline            
+⇒ current depth and largest depth to the left of the line.
+Depth of interval
+27
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+1.Sort endpoints from left to right p
+1
+, ..., p
+2n
+2.currentDepth=0
+3.maxDepth=0
+4.for i=1 to 2n do
+ if p
+i
+ is left endpoint then 
+       currentDepth =   currentDepth + 1
+       if maxDepth <   currentDepth then
+  maxDepth =   currentDepth
+ else  {if p
+i
+ is a right endpoint}
+       currentDepth =   currentDepth –  1
+5.end {for}
+6.Report maxDepth
+Depth of interval
+28
+O(n log n)
+O(n)
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+Summary: Depth of intervals
+Theorem: 
+ The depth of a set of n intervals in 1D can be 
+computed in O(n log n) time using a sweepline 
+algorithm.
+29
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+Sweepline
+Main idea:
+Sweep an “imaginary" line L across the plane while 
+(1)maintaining the status of L and 
+(2)fulfilling an invariant.
+› The status of L only changes at certain discrete event points. 
+› When the sweep line encounters an event point the status is updated 
+in such a way that the invariant is guaranteed to hold after the event 
+point has been processed.
+30
+[current depth]
+[the maximum depth to the 
+left of L has been computed]
+[endpoints of segments]
+[updating the depth counter]
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+Prove correctness
+Correctness usually follows immediately from the invariant 
+and the event points. 
+1)Prove that the status can't change between two 
+consecutive event points and 
+2)prove that the invariant holds before and after an event 
+point is processed.
+31
+[if event points are correctly chosen this is usually trivial]
+[depth counter correct before new event and after an 
+event has been processed]
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+32
+Segment intersection
+Segment intersection
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+33
+Segment intersection
+Input: A set of n line segments S={s
+1
+, s
+2
+, ... , s
+n
+} in the plane, 
+represented as pairs of endpoints.
+Intersection detection:  
+ Is there a pair of segments in S that intersect? 
+Intersection reporting: 
+ Find all pairs of segments that intersect.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+34
+⇒ Triangle ∆(p,q,r) is oriented counter-clockwise.
+p=(p
+x
+,p
+y
+), q=(q
+x
+,q
+y
+) and r=(r
+x
+,r
+y
+) 
+      p
+x
+ q
+x
+ r
+x
+D(p,q,r)    = p
+y
+ q
+y
+ r
+y
+        1  1  1 
+        =  (q
+x 
+-  p
+x
+)(r
+y
+ -  p
+y
+) –  (r
+x
+ -  p
+x
+)(q
+y
+ -  p
+y
+)     [ 2 multiplications, 
+     5 subtractions ]
+∆(p,q,r) is oriented counter-clockwise iff D(p,q,r) > 0.
+CCW(p,q,r) = true if D(p,q,r)>0 otherwise false
+Check left turn a primitive?
+How can we check if a point r lies to the left of a line pq?
+p
+r
+q
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+Testing intersection
+Test if two segments (p,q) and (u,v) intersect.
+   boolean INTERSECT(Points u, v, p, q) 
+         return [(CCW(u, v, p) xor CCW (u, v, q)) and 
+                    (CCW(p, q, u) xor CCW (p, q, v))]
+35
+u
+v
+q
+p
+u
+v
+q
+p
+u
+v
+q
+p
+u
+v
+q
+p
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+36
+Segment intersection
+Input: A set of n line segments S={s
+1
+, s
+2
+, ... , s
+n
+} in the plane, 
+represented as pairs of endpoints.
+Intersection detection:  
+ Is there a pair of lines in S that intersect? 
+Intersection reporting: 
+ Find all pairs of segments that intersect.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+37
+Brute force algorithm
+Check every possible pair of segments if they intersect
+ ⇒   O(n
+2
+) time
+Reporting? Nope!
+Can we do better?
+Detection? Maybe!
+n/2
+n/2
+However, we can try to make the running time 
+sensitive to the size of the output (h).
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+38
+•Simulate sweeping a vertical line from left to right across the plane.
+•Events: Discrete points where sweepline status needs to be updated
+•Sweepline status: Store information with sweepline
+•Maintain invariant: At any point in time, to the left of sweep line everything 
+has been properly processed.
+Design technique
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+39
+Algorithm Generic_Plane_Sweep:
+Initialize sweep line status S   at time x=-∞
+Store initial events in event queue Q, a priority queue ordered by x-coordinate
+while Q ≠ ∅ 
+ // extract next event e: 
+ e = Q.extractMin(); 
+ // handle event:
+ Update sweep line status
+ Discover new upcoming events and insert them into Q
+Design technique
+•Simulate sweeping a vertical line from left to right across the plane.
+•Events: Discrete points where sweepline status needs to be updated
+•Sweepline status: Store information with sweepline
+•Maintain invariant: At any point in time, to the left of sweep line everything 
+has been properly processed.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+40
+Plane sweep algorithm: intersection detection
+Plane sweep (general method):
+1.Sweep the input from left to right and stop 
+at event points
+2.Maintain invariant (status and structure)
+3.At each event point restore invariant
+Event points? (ignore intersections for now)
+ 
+end points of the segments
+Invariant: 
+›The order of the segments 
+along the sweep line  
+›No intersections to the left of 
+the sweepline
+s
+1
+s
+2
+s
+3
+s
+4
+s
+1
+s
+2
+s
+3
+s
+4
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+41
+Plane sweep algorithm
+Idea: 
+ Maintain S
+t 
+while l
+t
+ moves from left to right
+l
+t 
+: the vertical line at x=t
+S
+t 
+: the sequence of the segments that 
+intersects l
+t
+ in order from top to bottom. 
+Invariant: 
+ - We know S
+t
+ 
+- No intersections to the left of L
+s
+1
+s
+2
+s
+3
+s
+4
+s
+1
+s
+2
+s
+3
+s
+4
+l
+t
+S
+t
+:
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+42
+Event handling
+Initially: Let t
+1
+, t
+2
+, ... , t
+2n
+ be the x-coordinates of the endpoints
+Case 1: t
+i+1
+ is a left end point
+Case 2: t
+i+1
+ is a right end point
+s
+1
+s
+2
+s
+3
+s
+4
+s
+1
+s
+2
+s
+3
+s
+4
+s
+5
+s
+5
+s
+1
+s
+2
+s
+3
+s
+4
+s
+1
+s
+2
+s
+3
+s
+4
+s
+5
+s
+5
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+43
+Data structure
+We need to store S
+t
+ in a data structure that supports fast insertions 
+and deletions.
+Structure:  Balanced binary search trees
+ Each update can be done in O(log n) time
+Problem: We did not check intersections! How can we 
+look for intersections?
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+44
+Intersection points
+Observation: Let q be the leftmost intersection point, where 
+q is an intersection point between the segments s and s’ 
+with x-coordinate t then s and s’ are adjacent in S
+t
+.
+Proof:
+Assume the opposite, i.e., S
+t
+ =  (....s...α...s’...)
+1.Right endpoint of α must be to the right of q.
+q
+s’
+s
+α
+2.If q below α then α intersects s to the left of q. 
+ ⇒ contradicts that q is leftmost intersection
+3.  Similarly, q cannot lie above 
+α
+⇒ contradiction!
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+45
+Intersection point
+Conclusion: To detect an 
+intersection we only 
+need to check adjacent 
+segments in S
+t
+.
+s
+3
+s
+2
+s
+1
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+46
+Algorithm
+Algorithm DetectIntersection(S) 
+1.Store the segments S
+t
+ in a balanced binary search tree T 
+w.r.t. the order along l
+t
+. 
+2.When deleting a segment in T two segments become 
+adjacent. We can find them in O(log n) time and check 
+if they intersect.
+3.When inserting a segment s
+i
+ in T it becomes adjacent to 
+two segments. We can find them in O(log n) time and 
+check if they intersect s
+i
+.
+4.If we find an intersection we’re done!
+Time complexity?
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+47
+Algorithm - detection
+Every endpoint is an event point ⇒ 2n event points
+Insert segment s
+  Add s to T:  O(log n)
+  Check neighbours: 2 × O(log n) 
+Delete segment s
+  Remove s from T: O(log n)
+  Check new neighbours: 2 × O(log n)
+    
+       
+Total: O(n log n)
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+48
+Intersection reporting 
+How can we change the algorithm to report all intersections?
+Event points =
+endpoints plus intersection points
+Where does the order along l
+t
+ change?
+With the new event points we can run the algorithms as before 
+(with minor modifications). 
+                   Running time: O(n log n + h log n)
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+49
+Lower bound 
+Can we do better that O(n log n)?
+Element Uniqueness problem  Ω(n log n)
+Given a set of real numbers, are they distinct?
+Element Uniqueness is a simpler version than our problem
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+50
+Segment intersection
+Sweep-line technique
+[Shamos & Hoey’75], [Lee & Preparata’77], [Bentley & Ottman’79]
+Intersection reporting
+›O(n log n + h log n) time [Bentley & Ottmann’79]
+›O(n log
+2
+ n/loglog n + h) [Chazelle’86]
+› O(n log n + h)  [Chazelle & Edelsbrunner’88]
+› O(n log n + h)   [Balaban’95]
+    (also works for curves)
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+51
+Computational Geometry
+Back to polygon triangulation
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+52
+Polygon triangulation 4
+Algorithm 4:
+  Partition P into y-monotone pieces.  O(n log n)
+   Triangulate every y-monotone polygon O(n)
+Theorem: Every simple polygon can be triangulated 
+                in O(n log n) time.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+53
+l- monotone polygon
+A simple polygon is called monotone 
+w.r.t. a line l if for any line l’ 
+perpendicular to l, the intersection of 
+the polygon with l’ is connected (y-
+monotone, if l = y-axis).
+   Observation: if P is l-monotone then P 
+consists of two l-monotone chains.
+l
+l’
+y-monotone polygon
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+54
+l- monotone polygon
+A simple polygon is called monotone 
+w.r.t. a line l if for any line l’ 
+perpendicular to l, the intersection of 
+the polygon with l’ is connected (y-
+monotone, if l = y-axis).
+   Observation: if P is l-monotone then P 
+consists of two l-monotone chains.
+l
+l’
+Not y-monotone polygon
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+55
+Triangulate simple polygon
+Main idea:
+   1. Partition P into y-monotone polygons
+    Time O(n log n)
+   2. Triangulate each y-monotone polygon
+    Time O(n
+i
+)
+Prove: 
+     A simple polygon can be triangulated     
+     in O(n log n) time.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+56
+Triangulate monotone polygon
+Idea:
+Use a plane sweep algorithm.
+Informal invariant: Try to triangulate everything you can 
+below the sweep line by adding diagonals andthen 
+remove the triangulated region from further 
+consideration.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+57
+Plane sweep algorithm
+Plane sweep (general method):
+1.Sweep the input from bottom to top and stop at event points
+2.Maintain invariant
+3.At each event point restore invariant
+Event points?
+  
+Input points
+Invariant: 
+•The part below the sweep-line that has not been triangulated 
+forms a funnel (one side being a segment and the other a concave 
+chain).
+•A stack containing all the vertices below the sweep-line that may 
+need more diagonals.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+58
+Plane sweep algorithm
+Three cases:
+1.The new point extends the “funnel chain”
+2.The new point is on the opposite side of the “funnel chain”
+3.The new point lie on the chain side but does not extend the 
+funnel.
+Add edges from the new vertex v to all 
+vertices below that are visible from v!
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+59
+• merge the vertices of the left and right chains of P into y-sorted order, say, u
+1
+, u
+2
+, ... , u
+n
+. 
+• push u
+1
+ and u
+2 
+into an initially empty stack S. 
+• for  j ←3 .. n-1  do
+  if u
+j
+ and v
+top 
+← top(S) are on different chains
+  then pop all vertices from S 
+          add a diagonal between u
+j
+ and each popped vertex except the last one. 
+   push  u
+j-1 
+and u
+j
+ onto S.
+   else pop one vertex from S
+   pop all vertices from S that are visible from u
+j
+     
+   and add a diagonal between u
+j
+ and each popped vertex.
+   push last popped vertex back onto S.
+   push  u
+j
+ onto S.
+• add diagonals from the last vertex  u
+n
+ to all stack vertices except first and last.
+end 
+Triangulate monotone polygon
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+60
+• merge the vertices of the left and right chains of P into y-sorted order, say, u
+1
+, u
+2
+, ... , u
+n
+. 
+• push u
+1
+ and u
+2 
+into an initially empty stack S. 
+• for  j ←3 .. n-1  do
+  if u
+j
+ and v
+top 
+← top(S) are on different chains
+  then pop all vertices from S 
+          add a diagonal between u
+j
+ and each popped vertex except the last one. 
+   push  u
+j-1 
+and u
+j
+ onto S.
+   else pop one vertex from S
+   pop all vertices from S that are visible from u
+j
+     
+   and add a diagonal between u
+j
+ and each popped vertex.
+   push last popped vertex back onto S.
+   push  u
+j
+ onto S.
+• add diagonals from the last vertex  u
+n
+ to all stack vertices except first and last.
+end 
+Triangulate monotone polygon
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+61
+ Advance along y-sorted vertex-list from 
+bottom to top.
+ For each vertex v in y-sorted order, add 
+downward visible diagonals from v to all 
+visible vertices, starting from most 
+recent & backwards. 
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+Triangulate monotone polygon
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+62
+push u
+1
+ and u
+2 
+into an initially empty stack S. 
+      for  j ←3 .. n-1  do
+  if u
+j
+ and v
+top 
+← top(S) are on different chains
+  then pop all vertices from S 
+    add a diagonal between u
+j
+ and each 
+ popped vertex except the last one. 
+ push  u
+j-1 
+and u
+j
+ onto S.
+   else pop one vertex from S
+   pop all vertices from S that are visible from u
+j
+     
+   and add a diagonal between u
+j
+ and each popped vertex.
+   push last popped vertex back onto S.
+   push  u
+j
+ onto S.
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+Triangulate monotone polygon
+5
+43
+2
+1
+6
+11
+10
+9
+8
+7
+12
+16
+15
+14
+13
+stack
+2
+13
+14
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+63
+1. merge the vertices of the left and right chains of P into y-sorted order, say, u
+1
+, u
+2
+, ... , u
+n
+. 
+2. push u
+1
+ and u
+2 
+into an initially empty stack S. 
+3. for  j ←3 .. n-1  do
+a.if u
+j
+ and v
+top 
+← top(S) are on different chains
+b.then pop all vertices from S 
+   add a diagonal between u
+j
+ and each popped vertex except the last one. 
+  push  u
+j-1 
+and u
+j
+ onto S.
+c. else pop one vertex from S
+   pop all vertices from S that are visible from u
+j
+     
+   and add a diagonal between u
+j
+ and each popped vertex.
+  push last popped vertex back onto S.
+  push  u
+j
+ onto S.
+4. add diagonals from the last vertex  u
+n
+ to all stack vertices except first and last.
+Running time?
+Step 1: O(n) time
+Step 3: n times - each iteration may take O(n) time   ⇒   O(n
+2
+) time
+Can it be improved?
+How many vertices are pushed onto the stack at each iteration? 
+At most 2!    ⇒   
+O(n) time
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+64
+Result
+Theorem:
+      A y-monotone polygon can be triangulated in O(n) 
+time! 
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+65
+Fact:  P is y-monotone if and only if it does not have any cusps 
+      (no split or merge vertices).
+Subdivide the simple polygon into monotone sub-polygons by adding diagonals to split 
+and merge vertices.
+y-monotone
+Partition into monotone polygons
+Split vertex: concave local y-max vertex. 
+Merge vertex: concave local y-min vertex. 
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+66
+Monotonic partitioning
+Idea:
+•sweep the polygon from top to bottom
+•keep track of all regions that the sweep 
+line intersects.
+•When two regions merge, or one is split, 
+add edges to separate the regions into 
+monotonic parts.
+•Events?   
+•Sweep line data structure?
+vertices
+binary search tree (BST) that keeps tracks of the 
+order of the edges intersecting the sweep line
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+67
+Plane sweep algorithm
+Plane sweep (general method):
+ 1. Sweep the input from top to bottom and stop at event points
+ 2. Maintain invariant
+ 3. At each event point restore invariant
+Event points?
+   Vertices of polygon, sorted in decreasing order by y-coordinate  
+       (no new events will be added). 
+Invariant: 
+ 1. The part of the polygon above the last processed event point 
+     is partitioned into y-monotone polygons.
+ 2. We know the order of the segments along the sweep line 
+        (stored in a balanced binary tree).
+ 3. We know the “helper” of each edge intersecting the sweep-line
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+68
+Sweep Line Algorithm
+Event processing of vertex v:
+1.Start vertex:
+–Insert the two edges into BST.
+2.End vertex: 
+–Delete incident edges from BST.
+3.Left chain vertex:
+–Replace upper edge with lower edge in BST. 
+4.Right chain vertex:
+-Replace upper edge with lower edge in BST. 
+5.Split vertex
+-Insert the two edges into BST.
+6.Merge vertex
+ 
+-Delete incident edges from BST.
+v
+v
+v
+v
+v
+v
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+69
+Plane sweep algorithm
+Plane sweep (general method):
+ 1. Sweep the input from top to bottom and stop at event points
+ 2. Maintain invariant
+ 3. At each event point restore invariant
+Event points?
+   Vertices of polygon, sorted in decreasing order by y-coordinate  
+       (no new events will be added). 
+Invariant: 
+ 1. The part of the polygon above the last processed event point 
+     is partitioned into y-monotone polygons.
+ 2. We know the order of the segments along the sweep line 
+        (stored in a balanced binary tree).
+ 3. We know the “helper” of each edge intersecting the sweep-line
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+70
+Monotonic partitioning
+Lemma: A polygon is y-monotone if it has no split vertices or merge vertices.
+Proof: Assume P is not y-monotone. Prove that P has a split or merge vertex.
+l
+l
+P
+qr
+l
+P
+q
+r
+split vertex
+merge vertex
+On the shortest walk from q 
+to r there must be some 
+highest (or lowest) point. 
+This point must be a split (or 
+merge) vertex.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+71
+Plane sweep algorithm
+Plane sweep (general method):
+ 1. Sweep the input from top to bottom and stop at event points
+ 2. Maintain invariant
+ 3. At each event point restore invariant
+Event points?
+   Vertices of polygon, sorted in decreasing order by y-coordinate  
+       (no new events will be added). 
+Invariant: 
+ 1. The part of the polygon above the last processed event point 
+     is partitioned into y-monotone polygons.
+ 2. We know the order of the segments along the sweep line 
+        (stored in a balanced binary tree).
+ 3. We know the “helper” of each edge intersecting the sweep-line
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+Helper
+72
+l
+e
+j
+e
+k
+v
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+Helper
+73
+l
+e
+j
+e
+k
+v
+l
+e
+j
+e
+k
+v
+helper(e
+j
+)helper(e
+j
+)
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+74
+Monotonic partitioning: Algorithm
+l
+helper(e
+j
+) = the lowest vertex to 
+the right of e
+j
+ above the sweep 
+line such that the horizontal 
+segment connecting the vertex to 
+e
+j
+ lies inside P.
+e
+j
+e
+k
+The upper endpoint of e
+j 
+can be 
+the helper.
+We can always connect v to the 
+helper of e
+j
+. 
+v
+helper(e
+j
+)
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+75
+Monotonic partitioning: Algorithm
+Goal: add diagonals from each split vertex to a vertex above it. Which one?
+A vertex close to it?
+l
+Consider a split vertex v. Let e
+j
+ (e
+k
+) be 
+the edge immediately to the left 
+(right) of v along sweep line.
+e
+j
+e
+k
+v
+helper(e
+j
+)
+We can always connect v to the helper 
+of   e
+j
+. 
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+76
+Monotonic partitioning: Algorithm
+Goal: add diagonals from each split vertex to a vertex above it. Which one?
+A vertex close to it?
+l
+Consider a split vertex v. Let e
+j
+ (e
+k
+) be 
+the edge immediately to the left 
+(right) of v along sweep line.
+e
+j
+e
+k
+We can always connect v to the helper 
+of   e
+j
+. 
+v
+Helper(e
+j
+)
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+77
+Removal of split and merge vertices
+l
+e
+j
+e
+k
+v
+helper(e
+j
+)
+e
+j
+e
+k
+l
+u
+v
+Split vertex: Add an edge to helper(e
+j
+) or 
+  to top vertex of e
+j
+.
+       Set helper(e
+j
+) := v 
+       Insert v’s incident edges to BST.
+Merge vertex: (split nodes in reverse) 
+  Set helper(e
+j
+) := v 
+  Aim is to connect v to the highest vertex  
+  below the sweep line in between e
+j
+ and e
+k
+.
+  Remove v’s incident edges from BST. 
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+78
+Plane sweep algorithm
+Plane sweep (general method):
+ 1. Sweep the input from top to bottom and stop at event points
+ 2. Maintain invariant
+ 3. At each event point restore invariant
+Event points?
+   Vertices of polygon, sorted in decreasing order by y-coordinate.  
+      (No new events will be added)  
+Invariant: 
+ 1. The part of the polygon above the last processed event point 
+     is partitioned into y-monotone polygons.
+ 2. We know the order of the segments along the sweep line 
+        (stored in a balanced binary tree).
+ 3. We know the “helper” of each edge intersecting the sweep-line
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+79
+Sweep Line Algorithm
+Event processing of vertex v:
+1.Split vertex
+2.Merge vertex
+ 
+3.Start vertex:
+–Insert the two edges into BST. 
+–Set helper of left edge to v.
+4.End vertex: 
+–Delete incident edges from BST.
+–If u=helper(e
+i-1
+) is a merge vertex then add (u,v)
+5.Left chain vertex:
+–If u=helper(e
+i-1
+) is a merge vertex then add (u,v)
+–Replace upper edge with lower edge in BST. 
+–Make v helper of new edge.
+6.Right chain vertex: (similar to 5)
+v
+v
+v
+v
+e
+i-1
+e
+i-1
+e
+i-1
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+80
+Monotone partition: Analysis
+Correctness? 
+Many cases to consider for correctness of event handling. See the book 
+for detailed proof.
+›Helpers are correctly updated
+›Merge vertices are correctly resolved
+›Split vertices are correctly resolved
+›Added diagonals do not intersect each other
+There are no split or merge vertices remaining.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+81
+Monotone partition: Analysis
+Time complexity? 
+Sort the vertices into an event queue Q.
+We have n events and in each event we perform:
+–One query on Q (which event to process),
+–at most one query in T (the binary search tree),
+–at most two deletions on T, and
+–at most two insertions on T.
+Each update operation can be performed in O(log n) time
+         
+  Total time: O(n log n)
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+82
+Triangulate simple polygon
+Main idea:
+   1. Partition P into y-monotone polygons
+    Time O(n log n)
+   2. Triangulate each y-monotone polygon
+    Time O(n
+i
+)
+Prove: 
+     A simple polygon can be triangulated         
+     in O(n log n) time.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+83
+Assumption: 10
+9
+ instructions per second
+Input size: 1 million points = 10
+6
+ points
+          ⇒ running time ~ n
+ 
+log n/10
+9
+ = 0.006 seconds
+#points in 1 second: 100,000,000 points
+Algorithm 4: running time
+AlgorithmComplexityTime (sec)Points/sec
+1O(n
+4
+)32M yrs180
+2O(n
+3
+)32 yrs1000
+3O(n
+2
+)1020 sec30k
+4O(n log n)0.06 sec100M
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+84
+Previously
+• Every simple polygon with n vertices 
+   can be decomposed into n-2 triangles.
+• Every triangulated simple polygon can 
+   be 3-colourable.
+• Every simple polygon can be “guarded” 
+   by n/3 guards, and n/3 guards is 
+   sometimes necessary.
+• To find a guard set our algorithm 
+   requires a triangulation.
+   To d a y : O(n log n)
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 2 Sweep Line Mar 6.pdf
+85
+Polygon triangulation 
+›O(n log n) time [Garey, Johnson, Preparata & Tarjan’78]
+›O(n loglog n)  [Tarjan & van Wijk’88]
+› O(n log* n)  [Clarkson et al.’89]
+› O(n)    [Chazelle’90]
+› O(n) randomised [Amato, Goodrich & Ramos’00]
+Open problem: Is there a simple O(n)-time algorithm?
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+1
+COMMONWEALTH OF AUSTRALIA
+Copyright Regulations 1969
+WARNING
+This material has been reproduced and communicated to you by or on 
+behalf of the University of Sydney pursuant to Part VB of the Copyright 
+Act 1968 (the Act). The material in this communication may be subject 
+to copyright under the Act. Any further copying or communication of this 
+material by you may be the subject of copyright  protection under the 
+Act.
+Do not remove this notice.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+2
+Convex hull
+Convex hulls and the sweep 
+line technique
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+3
+A subset S of the plane is convex if for every pair of points p,q in S the 
+straight line segment pq is completely contained in S.
+p
+q
+p
+q
+Convex hull
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+4
+The convex hull of a point set S is the smallest convex set containing S.
+rubber 
+band
+We only want to find the hull (simple polygon)!
+Convex hull
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+5
+Definition:
+ The convex set of a set of point S in d dimensions is the union of all
+ convex combinations of (d+1) points of S.
+d=2: Convex combination of 3 points    
+⇒ a triangle! 
+Definition implies an algorithm:
+ A point that does not lie in the interior
+ of any triangle of S is a CH vertex.
+ Why?
+CH algorithm 1
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+6
+Algorithm CH1(S) 
+1.   for every possible triple of points x,y,z in S do
+2.      for every point q in S do
+3. if q lies within the triangle (x,y,z) then
+4.          discard q from S
+5.Build CH by sorting points radially around a point on the CH   
+Time complexity?
+Step 1 is performed O(n
+3
+) times
+Step 2 is performed n times/iteration
+Steps 3 & 4 cost O(1)/iteration
+Step 5 costs O(n log n)
+Total time: O(n
+4
+)
+CH algorithm 1
+x
+z
+y
+q
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+7
+Assumption: 10
+9
+ instructions per second
+Input size: 1 million points = 10
+6
+ points
+          ⇒ running time ~ n
+4
+/10
+9
+ = 10
+15
+ seconds ~ 32 million years
+CH in 1 second:  180 points
+CH algorithm 1: running time
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+8
+Definition: 
+The CH of S is the intersection of all halfspaces that contain S.
+This definition implies a second algorithm.
+Consider an edge xy of CH(S).
+All points of S must lie to the right 
+of the directed line through x and y.
+x
+y
+CH algorithm 2
+Why is the intersection of two convex sets a convex set? Union?
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+9
+Algorithm CH2(S) 
+1. for every ordered pair x,y in S do
+2.      valid ← true
+3.      for every point z in S-{x,y} do
+4.   if z lies to the left of xy then 
+5.       valid ← false
+6.      if valid then 
+7.         add xy to CH
+8. Sort the edges in CH   
+Time complexity?
+Steps 1-2, 6-7 : O(n
+2
+) times
+Steps 3-5 :        (n-2) times/iteration
+Step 8 :             O(n log n)
+Total time: O(n
+3
+)
+x
+y
+z
+CH algorithm 2
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+10
+Assumption: 10
+9
+ instructions per second
+Input size: 1 million points = 10
+6
+ points
+          ⇒ running time ~ n
+3
+/10
+9
+ = 10
+9
+ seconds ~ 32 years
+CH in 1 second:  1000 points
+CH algorithm 2: running time
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+11
+⇒ Triangle ∆(p,q,r) is oriented counter-clockwise.
+p=(p
+x
+,p
+y
+), q=(q
+x
+,q
+y
+) and r=(r
+x
+,r
+y
+) 
+               p
+x
+ q
+x
+ r
+x
+CCW(p,q,r)    = p
+y
+ q
+y
+ r
+y
+               1  1  1 
+        =  (q
+x 
+-  p
+x
+)(r
+y
+ -  p
+y
+) –  (r
+x
+ -  p
+x
+)(q
+y
+ -  p
+y
+)     [ 2 multiplications, 
+     5 subtractions ]
+∆(p,q,r) is oriented counter-clockwise iff CCW(p,q,r) > 0. 
+Check left turn a primitive?
+How can we check if a point r lies to the left of a line pq?
+p
+r
+q
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+12
+Check left turn a primitive?
+p
+r
+q
+What is CCW(p,q,r)? 
+|CCW(p,q,r)|    =    
+If pqr is a left turn then CCW(p,q,r) > 0 
+If pqr is a right turn then CCW(p,q,r) < 0 
+(*) For proof see 
+https://people.richland.edu/james/lecture/m116/matrices/area.html
+(*)
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+13
+e
+i+1
+y
+L
+y
+L
+y
+L
+CH algorithm 3 (Gift Wrapping)
+Can we compute the CH faster? Is there anything we know 
+about the CH that we haven’t used?
+Idea:
+Draw a line L through x and a point y. Are 
+there any points to the right of L?
+If not (x,y) is an edge of CH.
+e
+i
+e
+i+1
+e
+i+2
+The edges in the CH are linked into a convex polygon!
+If we found an edge on the CH with endpoint 
+at x then the next edge must start at x.
+x
+e
+i
+x
+Start point? 
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+14
+CH algorithm 3
+Algorithm CH3(S) 
+1. find lowest point p in S
+2. e 
+← ( (-∞,  p
+y
+),p)
+3. x 
+← p
+4.repeat 
+5.   valid ← true    
+6.   for every point q in S-{x} do
+7.        L 
+← directed line through x and q
+8.        for every point r in S-{x,q} do
+9.           if r to the right of L then
+10.       valid ← false
+11.    if valid then 
+12.        add xq to CH
+13.        x
+ ← q 
+14. until x == p     
+x
+e
+Time complexity: O(n
+3
+)
+q
+L
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+15
+Can this be done faster?
+x
+e
+Looking for the point 
+with largest angle!
+Algorithm CH3(S) 
+1. find lowest point p in S
+2. e 
+← ( (-∞,  p
+y
+),p)
+3. x 
+← p
+4.repeat  
+5.   valid ← true    
+6.   for every point q in S-{x} do
+7.        L 
+← directed line through x and q
+8.        for every point r in S-{x,q} do
+9.           if r to the right of L then
+10.       valid ← false
+11.    if valid then 
+12.        add xq to CH
+13.        x
+ ← q 
+14. until x == p     
+CH algorithm 3
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+16
+x
+e
+Time complexity: O(n
+2
+)
+What if the number of points on 
+the CH is small? 
+Algorithm CH4(S) 
+1.find lowest point p in S
+2.x 
+← (-∞,p
+y
+) 
+3.e 
+← (x,p)
+4.repeat      
+5.   maxAngle 
+← 0
+6.   for every point q in S do
+7.       if ∠(e,(p,q)) > maxAngle then
+8.           nextPoint ← q
+9.           maxAngle ← ∠(e,(p,q)) 
+10.   e ← (p,nextPoint)
+11.    
+p ← q
+12. until x == p     
+e
+q
+p
+q
+e
+CH algorithm 4
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+17
+Time complexity: O(n
+2
+)
+What if the number of points on 
+the CH is small?  O(hn)
+Algorithm CH4(S) 
+1.find lowest point p in S
+2.x 
+← (-∞,p
+y
+) 
+3.e 
+← (x,p)
+4.repeat      
+5.   maxAngle 
+← 0
+6.   for every point q in S do
+7.       if ∠(e,(p,q)) > maxAngle then
+8.           nextPoint ← q
+9.           maxAngle ← ∠(e,(p,q)) 
+10.   e ← (p,nextPoint)
+11.    
+p ← q
+12. until x == p     
+CH algorithm 4
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+18
+Assumption: 10
+9
+ instructions per second
+Input size: 1 million points = 10
+6
+ points
+          ⇒ running time ~ n
+2
+/10
+9
+ = 10
+3
+ seconds ~ 17 minutes
+CH in 1 second:  30,000 points
+CH algorithm 4: running time
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+19
+CH algorithm 5 - QuickHull
+Divide-and-Conquer approach
+QuickHull(S)
+1.A = leftmost point of S
+2.B = rightmost point of S
+3.S1 = {points in S above AB}
+4.S2 = {points in S below AB}
+5.FindHull(S1,A,B)
+6.FindHull(S2,B,A)
+A
+B
+S1
+S2
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+20
+CH algorithm 5 - QuickHull
+Divide-and-Conquer approach
+QuickHull(S)
+1.A = leftmost point of S
+2.B = rightmost point of S
+3.S1 = {points in S above AB}
+4.S2 = {points in S below AB}
+5.FindHull(S1,A,B)
+6.FindHull(S2,B,A)
+A
+B
+S1
+S2
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+21
+CH algorithm 5 - QuickHull
+FindHull(S, A, B)
+ If S not empty then 
+1.Find farthest point C in S from AB
+2.Add C to convex hull between A 
+and B
+3.S0={points inside ABC}
+4.S1={points to the right of AC}
+5.S2={points to the right  of CB}
+6.FindHull(S1, A, C)
+7.FindHull(S2, C, B)
+A
+B
+C
+S0
+S1
+S2
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+22
+CH algorithm 5 - QuickHull
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+23
+CH algorithm 5 - QuickHull
+Worst Case:   
+ T(n) = T(n-2) + O(n)
+         = T(n-3) + O(n) + O(n)           
+         = ... = O(n
+2
+)
+QuickHull 
+     - Compute A and B    O(n) time         
+     - FindHull(S
+1
+,A,B)  T(|S1|) time
+     - FindHull(S
+2
+,B,A)  T(|S2|) time
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+24
+CH algorithm 5 - QuickHull
+Worst Case:   
+ T(n) = T(n-2) + O(n)
+         = T(n-3) + O(n) + O(n)           
+         = ... = O(n
+2
+)
+  What if points are “nicely” distributed?
+ T(n) = O(T(n/2)) + O(T(n/2)) + O(n)         
+         = O(n log n) Why?
+QuickHull 
+     - Compute A and B    O(n) time         
+     - FindHull(S
+1
+,A,B)  T(|S1|) time
+     - FindHull(S
+2
+,B,A)  T(|S2|) time
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+25
+CH algorithm 6 – sweep line approach
+Idea: Maintain hull while adding the points one by 
+     one, from left to right ⇔ sweep the point from left to right
+ Build the upper and lower part of the hull separately, and then 
+merge them at the end.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+26
+CH algorithm 6 – sweep line approach
+Idea: Maintain hull while adding the points one by 
+     one, from left to right ⇔ sweep the point from left to right
+Observation: Always right-turns!
+                (along the upper hull)
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+27
+CH algorithm 6 - sweep line approach
+Running time?
+O(n) per insertion  ⇒  O(n
+2
+) in total 
+Can it be that bad?
+A point is only added to the
+hull once and removed from the 
+hull once!  
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+28
+CH algorithm 6 - sweep line approach
+Algorithm CH6(S) 
+1.sort the points in S from left to right 〈p
+1
+,p
+2
+, ..., p
+n
+〉
+2.L
+upper
+ ← 〈p
+1
+,p
+2
+〉
+3.for i 
+← 3 to n do 
+4.       append p
+i
+ to L
+upper
+ 
+5.     while |L
+upper
+| > 2 and the last three 
+                             points (q
+1
+,q
+2
+,q
+3
+) turn left do
+6.             Delete q2 from L
+upper
+7. L
+lower
+ ← 〈p
+1
+,p
+2
+〉 
+  ...
+13. L 
+← join(L
+upper
+, L
+lower
+)
+14. return L
+Time complexity: O(n log n)
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+29
+Assumption: 10
+9
+ instructions per second
+Input size: 1 million points = 10
+6
+ points
+          ⇒ running time ~ n
+ 
+log n/10
+9
+ = 0.006 seconds
+CH in 1 second:  100,000,000 points
+CH algorithm 6: running time
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+30
+Lower bound
+Can we do better than O(n log n)?
+Prove a lower bound! Use a reduction from Sorting.
+Sorting = Ω(n log n) in the algebraic decision tree model
+Input to sorting
+n real values
+X = (x
+1
+, x
+2
+, ... , x
+n
+)
+Sort 
+Ω(n log n)
+The set X sorted 
+in increasing order
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+31
+Lower bound
+For each value x
+i
+ in X construct a point 
+  p
+i
+ = (x
+i
+,x
+i
+2
+)
+P = (p
+1
+, p
+2
+, ... , p
+n
+)
+Compute CH of P
+Find the leftmost point p in the CH. 
+Traverse the CH counter-clockwise from p
+and output the vertices in the order they 
+are encountered → Points in sorted order!
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+32
+Lower bound
+Input to sorting
+n real values
+X = (x
+1
+, x
+2
+, ... , x
+n
+)
+Ω(n log n)
+The set X sorted 
+in increasing order
+Transform real 
+values to points
+Compute CH
+Traverse 
+CH
+O(n)
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+33
+α
+e
+Time complexity: O(hn), where h is
+  the number of points
+  on the boundary of 
+ the CH.
+Recall CH algorithm 4
+Algorithm CH4(S) 
+1.find lowest point p in S
+2. α 
+← (-∞,p
+y
+) 
+3.e 
+← (α,p)
+4.repeat      
+5.   maxAngle 
+← 0
+6.   for every point q in S do
+7.       if ∠(e,(p,q)) > maxAngle then
+8.           nextPoint ← q
+9.           maxAngle ← ∠(e,(p,q)) 
+10.   e ← (p,nextPoint)
+11.    
+p ← q
+12. until α == p  
+e
+q
+p
+q
+e
+What if we could compute the next point faster?
+CH algorithm 7: Chen’s shattering algorithm
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+CH algorithm 7: Chen’s shattering algorithm
+Question: Given a convex polygon with n vertices, how fast can we find 
+an extreme point (maxAngle)?
+34
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+CH algorithm 7: Chen’s shattering algorithm
+Question: Given a convex polygon with n vertices, how fast can we find 
+an extreme point (maxAngle)?
+35
+Finding an extreme point 
+with respect to direction u.
+Binary search [a,b] with 
+c=(a+b)/2.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+CH algorithm 7: Chen’s shattering algorithm
+Question: Given a convex polygon with n vertices, how fast can we find 
+an extreme point (maxAngle)?
+36
+Binary type search
+Time: O(log n)
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+CH algorithm 7: Chen’s shattering algorithm
+Assume we know the value h [to be discussed later]
+1.Partition the point set into n/h subsets of size h [shattering]
+37
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+CH algorithm 7: Chen’s shattering algorithm
+Assume we know the value h [to be discussed later]
+1.Partition the point set into n/h subsets of size h [shattering]
+38
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+Assume we know the value h [to be discussed later]
+1.Partition the point set into n/h subsets of size h [shattering]
+2.Compute the CH of each subset
+CH algorithm 7: Chen’s shattering algorithm
+39
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+Assume we know the value h [to be discussed later]
+1.Partition the point set into n/h subsets of size h [shattering]
+2.Compute the CH of each subset 
+CH algorithm 7: Chen’s shattering algorithm
+40
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+CH algorithm 7: Chen’s shattering algorithm
+Assume we know the value h [to be discussed later]
+1.Partition the point set into n/h subsets of size h [shattering]
+2.Compute the CH of each subset [n/h ⋅ O(h log h) = O(n log h)]
+41
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+CH algorithm 7: Chen’s shattering algorithm
+Assume we know the value h [to be discussed later]
+1.Partition the point set into n/h subsets of size h [shattering]
+2.Compute the CH of each subset [n/h ⋅ O(h log h) = O(n log h)]
+3.Use algorithm 4 (with binary search for each component)
+42
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+CH algorithm 7: Chen’s shattering algorithm
+Assume we know the value h [to be discussed later]
+1.Partition the point set into n/h subsets of size h [shattering]
+2.Compute the CH of each subset [n/h ⋅ O(h log h) = O(n log h)]
+3.Use algorithm 4 (with binary search for each component)
+43
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+CH algorithm 7: Chen’s shattering algorithm
+Assume we know the value h [to be discussed later]
+1.Partition the point set into n/h subsets of size h [shattering]
+2.Compute the CH of each subset [n/h ⋅ O(h log h) = O(n log h)]
+3.Use algorithm 4 (with binary search for each component)
+44
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+CH algorithm 7: Chen’s shattering algorithm
+Assume we know the value h [to be discussed later]
+1.Partition the point set into n/h subsets of size h [shattering]
+2.Compute the CH of each subset [n/h ⋅ O(h log h) = O(n log h)]
+3.Use algorithm 4 (with binary search for each component)
+45
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+CH algorithm 7: Chen’s shattering algorithm
+Assume we know the value h [to be discussed later]
+1.Partition the point set into n/h subsets of size h [shattering]
+2.Compute the CH of each subset [n/h ⋅ O(h log h) = O(n log h)]
+3.Use algorithm 4 (with binary search for each component)  
+ [O(n/h ⋅ log h) to find next vertex of CH]
+ ⇒ [O(h ⋅ n/h ⋅ log h)=O(n log h)]
+46
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+CH algorithm 7: Chen’s shattering algorithm
+What if we do not know h?
+1.Set h=3
+2.Run the algorithm (Algorithm 4) trying to build a CH of size at 
+most h, after h iterations stop.  [even if CH is not finished]
+3.If CH complete      
+ return CH     
+       else       
+ set h=h
+2
+ and goto step 2.
+47
+Running time?
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+Running time: O(n log 3)+ O(n log 3
+2
+)+ ... + O(n log 3
+2
+k
+) where h ≈ 3
+2
+k
+  
+CH algorithm 7: Chen’s shattering algorithm
+What if we do not know h?
+1.Set h=3
+2.Run the algorithm (Algorithm 4) trying to build a CH of size at 
+most h, after h iterations stop.  [even if CH is not finished]
+3.If CH complete      
+ return CH     
+       else       
+ set h=h
+2
+ and goto step 2.
+48
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+CH algorithm 7: Chen’s shattering algorithm
+49
+Running time: O(n log 3)+ O(n log 3
+2
+)+ ... + O(n log 3
+2
+k
+) where h ≈ 3
+2
+k
+                      
+           = O(n log 3 + 2n log 3 + ... + 2
+k 
+n log 3)    
+What if we do not know h?
+1.Set h=3
+2.Run the algorithm (Algorithm 4) trying to build a CH of size at 
+most h, after h iterations stop.  [even if CH is not finished]
+3.If CH complete      
+ return CH     
+       else       
+ set h=h
+2
+ and goto step 2.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+CH algorithm 7: Chen’s shattering algorithm
+50
+Running time: O(n log 3)+ O(n log 3
+2
+)+ ... + O(n log 3
+2
+k
+) where h ≈ 3
+2
+k
+                      
+           = O(n log 3 + 2n log 3 + ... + 2
+k 
+n log 3)
+           = O(2
+k 
+n) = O(n log h)    
+What if we do not know h?
+1.Set h=3
+2.Run the algorithm (Algorithm 4) trying to build a CH of size at 
+most h, after h iterations stop.  [even if CH is not finished]
+3.If CH complete      
+ return CH     
+       else       
+ set h=h
+2
+ and goto step 2.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+51
+What is known?
+Preparata & Hong’77 O(n log n)
+Kirkpatrick & Seidel’86 O(n log h)
+Chen’93   O(n log h)
+Dynamic convex hull
+Brodal & Jacob’02  O(log n) time/update 
+                   [This was an open problem since 1981]
+d dimensions 
+Chazelle’93  Θ(n log n+n
+d/2
+)  
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+52
+What’s the expected size of CH?
+Assumption: Points uniformly distributed in a unit square in 2D
+Theorem: If n points are sampled from a uniform distribution 
+in a unit square, then the expected number of points on the 
+convex hull is O(log n).
+Proof: Consider the upper right (UR)  
+          part of the CH.
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+53
+What’s the expected size of CH?
+Consider a point p on the UR hull.
+What’s known about p?
+Observation: No other point can lie above and to 
+the right of p.   
+    [Not dominated by any other point]
+p
+Question: How many points are not dominated by others?
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+54
+What’s the expected size of CH?
+Question: How many points are no dominated by others?
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+55
+What’s the expected size of CH?
+Question: How many points are not dominated by others?
+Equivalent to:
+  p
+i.y
+ is greater than p
+1.y
+, p
+2.y
+, ... , p
+(i-1),y
+             12, 45, 65, 23, 5, 87, 34, 14, 76, 34, 9, 81, 36 
+What is the probability that p
+i.y
+ is greater than p
+1.y
+, p
+2.y
+, ... , p
+(i-1).y
+?
+ - Independent from a uniform distribution
+   
+Probability is 1/i
+(each point is equally likely to be the maximum)
+p
+1
+p
+2
+p
+3
+p
+4
+p
+5
+
+Document: ./utils/Agents/dataset/Computational Geometry/Lecture 3 Convex Hull Mar 13.pdf
+56
+What’s the expected size of CH?
+Let us sum up the probability for all the points.
+     
+Σ 1/  i
+  
+= 1+1/2+1/3+ ... +1/n < log n + 1
+Answer: For points uniformly distributed in a unit square the 
+expected number of points on the CH is O(log n).
+i=1
+n
+Disk: For points uniformly distributed in a disk the expected 
+number of points on the CH is O(n
+1/3
+).          [Raynaud’70]
+-----
+
+```json
+{
+  "multiple_choice": [
+    {
+      "question": "What is the smallest number of guards that suffice to guard any polygon with n vertices, denoted as G(n)?",
+      "options": [
+        "A. n",
+        "B. n-2",
+        "C. ⌊n/3⌋",
+        "D. ⌈n/3⌉"
+      ],
+      "answer": "C",
+      "explanation": "Chvátal proved in 1975, and Fisk provided an elegant proof in 1978, that the smallest number of guards sufficient to guard any polygon with n vertices is ⌊n/3⌋."
+    },
+    {
+      "question": "What is the time complexity of the first triangulation algorithm discussed in the lecture, which finds a valid diagonal in each iteration?",
+      "options": [
+        "A. O(n log n)",
+        "B. O(n^2)",
+        "C. O(n^3)",
+        "D. O(n^4)"
+      ],
+      "answer": "D",
+      "explanation": "The first triangulation algorithm has O(n) iterations, tests O(n^2) potential diagonals, and each diagonal test takes O(n) time, resulting in a total time complexity of O(n^4)."
+    },
+    {
+      "question": "What is the time complexity of partitioning a simple polygon into y-monotone pieces?",
+      "options": [
+        "A. O(n)",
+        "B. O(n log n)",
+        "C. O(n^2)",
+        "D. O(n^3)"
+      ],
+      "answer": "B",
+      "explanation": "The partitioning of a simple polygon into y-monotone pieces can be achieved in O(n log n) time using a sweep-line algorithm."
+    },
+    {
+      "question": "What is the time complexity of triangulating a y-monotone polygon?",
+      "options": [
+        "A. O(n)",
+        "B. O(n log n)",
+        "C. O(n^2)",
+        "D. O(n^3)"
+      ],
+      "answer": "A",
+      "explanation": "A y-monotone polygon can be triangulated in linear time, O(n), using a sweep-line algorithm with a stack."
+    },
+    {
+      "question": "What is the time complexity of the optimal algorithm for computing the convex hull of n points?",
+      "options": [
+        "A. O(n)",
+        "B. O(n log n)",
+        "C. O(n^2)",
+        "D. O(n log h), where h is the number of points on the convex hull"
+      ],
+      "answer": "B",
+      "explanation": "While output-sensitive algorithms like Kirkpatrick & Seidel's and Chen's algorithms achieve O(n log h), the optimal general algorithm for computing the convex hull has a time complexity of O(n log n)."
+    }
+  ],
+  "essay": [
+    {
+      "question": "Explain the concept of 3-coloring in the context of the Art Gallery Problem and how it relates to placing guards.",
+      "answer": "A 3-coloring of a triangulated polygon assigns one of three colors to each vertex such that no two adjacent vertices have the same color.  Since every triangle in the triangulation will have vertices of all three colors, placing guards at all vertices of any single color guarantees that every triangle, and thus the entire polygon, is guarded.  Since one of the three colors must be used at most ⌊n/3⌋ times, this provides an upper bound of ⌊n/3⌋ guards for any polygon with n vertices."
+    },
+    {
+      "question": "Describe the sweep-line technique in the context of segment intersection and explain how it helps achieve an efficient algorithm.",
+      "answer": "The sweep-line technique for segment intersection involves sweeping a vertical line across the plane from left to right.  The sweep line stops at event points, which are the endpoints of the segments.  A data structure, typically a balanced binary search tree, maintains the order of segments intersecting the sweep line.  By checking for intersections only between adjacent segments in this order, the algorithm avoids checking all pairs of segments, reducing the time complexity to O(n log n + h log n), where h is the number of intersections."
+    },
+    {
+      "question": "Explain the concept of y-monotone polygons and why they are useful in polygon triangulation.",
+      "answer": "A y-monotone polygon is a simple polygon such that any horizontal line intersects the polygon in at most one connected component.  Y-monotone polygons are easier to triangulate than general polygons.  By partitioning a simple polygon into y-monotone pieces, we can apply a more efficient linear-time triangulation algorithm to each piece, resulting in an overall O(n log n) triangulation algorithm for simple polygons."
+    }
+  ]
+}
+```
+-----
+
+[2025-03-15T05:59:32.139Z] [INFO] Application completed successfully
