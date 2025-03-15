@@ -13,7 +13,11 @@ import {
   Flex,
 } from "@chakra-ui/react";
 
+import { useRouter } from "next/navigation";
+
 export default function Home() {
+  const router = useRouter();
+
   return (
     <Box
       bg="gray.100"
@@ -34,7 +38,7 @@ export default function Home() {
         <Box
           bg="white"
           mt={6}
-          border="1px"
+          border="1px solid"
           w="650px"
           display="flex"
           flexDirection="column"
@@ -93,7 +97,9 @@ export default function Home() {
               </Select.Root>
             </Box>
 
-            <Button>Generate</Button>
+            <Button onClick={() => router.push("/create-paper")}>
+              Generate
+            </Button>
           </Flex>
         </Box>
       </Flex>
