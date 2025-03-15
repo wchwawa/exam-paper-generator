@@ -5,13 +5,19 @@ import {
   getDownloadURL,
   deleteObject,
   listAll,
-  getMetadata
+  getMetadata,
+  uploadBytesResumable
 } from 'firebase/storage';
-//TODO: need change the template to CURD the exam paper object
+import { UploadItem } from '@/types/storage';
+import { Buffer } from 'buffer';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
+import { v4 as uuidv4 } from 'uuid';
+//TODO: need to implement CRUD operations for exam paper objects
 
 /**
- * single file upload
- * @param file - file object
+ * Upload a single file to Firebase Storage
+ * @param file - file object to upload
  * @param path - storage path
  * @param projectId - optional project id to store files in
  */
@@ -31,7 +37,7 @@ export async function uploadFile(
   };
   
   if (file.isCompressed && file.compressedData) {
-    // image after compress
+    // Handle compressed image data
     const mimeType = file.compressedData.split(';')[0].split(':')[1];
     const base64Data = file.compressedData.split(',')[1];
     const blob = Buffer.from(base64Data, 'base64');
@@ -39,15 +45,15 @@ export async function uploadFile(
     const snapshot = await uploadBytes(fileRef, realBlob, metadata);
     return snapshot;
   } else {
-    // original image
+    // Upload original file
     const snapshot = await uploadBytes(fileRef, file.file, metadata);
     return snapshot;
   } 
 }
 
 /**
- * batch upload files
- * @param files - file array
+ * Upload multiple files in batch
+ * @param files - array of files to upload
  * @param path - base storage path
  * @param projectId - optional project id to store files in
  */
@@ -83,8 +89,8 @@ export async function uploadAllFiles(
 }
 
 /**
- * delete single file
- * @param path - file path
+ * Delete a single file from storage
+ * @param path - file path to delete
  */
 export const deleteFile = async (path: string): Promise<void> => {
   try {
@@ -97,8 +103,8 @@ export const deleteFile = async (path: string): Promise<void> => {
 };
 
 /**
- * batch delete files
- * @param paths - file path array
+ * Delete multiple files in batch
+ * @param paths - array of file paths to delete
  */
 export const deleteFiles = async (paths: string[]): Promise<void> => {
   try {
@@ -111,20 +117,20 @@ export const deleteFiles = async (paths: string[]): Promise<void> => {
 };
 
 /**
- * delete folder and its contents
- * @param folderPath - folder path
+ * Delete a folder and all its contents recursively
+ * @param folderPath - path of the folder to delete
  */
 export const deleteFolder = async (folderPath: string): Promise<void> => {
   try {
     const folderRef = ref(storage, folderPath);
     const list = await listAll(folderRef);
     
-    // recursive delete sub folders
+    // Delete sub-folders recursively
     const subFolderPromises = list.prefixes.map(prefix => 
       deleteFolder(prefix.fullPath)
     );
     
-    // delete files
+    // Delete files in current folder
     const filePromises = list.items.map(item => 
       deleteObject(item)
     );
@@ -137,8 +143,8 @@ export const deleteFolder = async (folderPath: string): Promise<void> => {
 };
 
 /**
- * download file (get download URL)
- * @param path - file path
+ * Get download URL for a file
+ * @param path - path of the file
  */
 export const getFileDownloadURL = async (path: string): Promise<string> => {
   try {
@@ -151,8 +157,8 @@ export const getFileDownloadURL = async (path: string): Promise<string> => {
 };
 
 /**
- * list folder contents
- * @param folderPath - folder path
+ * List contents of a user's folder
+ * @param userId - ID of the user
  */
 export async function listFiles(userId: string) {
   try {
@@ -181,7 +187,7 @@ export async function listFiles(userId: string) {
 }
 
 /**
- * List all files in a user's folder or a specific project folder
+ * List all files in a user's folder or project folder
  * @param userPath - user ID or user ID + project ID path
  */
 export async function listUserFiles(userPath: string) {
@@ -190,7 +196,7 @@ export async function listUserFiles(userPath: string) {
   try {
     const result = await listAll(userFolderRef);
     
-    // 获取每个文件的详细信息
+    // Get detailed information for each file
     const filesPromises = result.items.map(async (item) => {
       const metadata = await getMetadata(item);
       const downloadURL = await getDownloadURL(item);
@@ -208,7 +214,178 @@ export async function listUserFiles(userPath: string) {
     const files = await Promise.all(filesPromises);
     return files;
   } catch (error) {
-    console.error('List files error:', error);
+    console.error('Error listing files:', error);
     throw error;
   }
 }
+
+/**
+ * Get list of all course IDs
+ */
+export async function listCourseIds(): Promise<string[]> {
+  try {
+    const uploadsRef = ref(storage, 'uploads');
+    const result = await listAll(uploadsRef);
+    return result.prefixes.map(prefix => prefix.name);
+  } catch (error) {
+    console.error('Error listing course IDs:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get all files for a specific course
+ * @param courseId - ID of the course
+ */
+export async function getCourseFiles(courseId: string) {
+  try {
+    console.log('Fetching files for course:', courseId);
+    const courseRef = ref(storage, `uploads/${courseId}`);
+    const result = await listAll(courseRef);
+    console.log('Found items:', result.items.length);
+    
+    if (result.items.length === 0) {
+      console.log('No files found in path:', `uploads/${courseId}`);
+      return [];
+    }
+    
+    const filesPromises = result.items.map(async (item) => {
+      console.log('Processing file:', item.fullPath);
+      try {
+        const metadata = await getMetadata(item);
+        const url = await getDownloadURL(item);
+        
+        return {
+          name: item.name,
+          path: item.fullPath,
+          url: url,
+          size: metadata.size,
+          type: metadata.contentType || '',
+          createdAt: metadata.timeCreated
+        };
+      } catch (error) {
+        console.error(`Error processing file ${item.fullPath}:`, error);
+        return null;
+      }
+    });
+
+    const files = (await Promise.all(filesPromises)).filter(file => file !== null);
+    console.log('Processed files:', files);
+    return files;
+  } catch (error) {
+    console.error(`Error getting files for course ${courseId}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Download a single file
+ * @param url - URL of the file to download
+ */
+export const downloadSingleFile = (url: string) => {
+  window.open(url, '_blank');
+};
+
+/**
+ * Download multiple files individually
+ * @param files - array of files to download
+ */
+export const downloadAllFiles = (files: { url: string }[]) => {
+  files.forEach(file => {
+    downloadSingleFile(file.url);
+  });
+};
+
+/**
+ * Download multiple files as a ZIP archive
+ * @param files - array of files to download
+ * @param folderName - name of the folder in ZIP
+ */
+export const downloadAllFilesAsZip = async (
+  files: { name: string; url: string }[],
+  folderName: string
+): Promise<void> => {
+  if (files.length === 0) return;
+
+  const zip = new JSZip();
+  
+  try {
+    // Create folder in ZIP
+    const folder = zip.folder(folderName);
+    if (!folder) throw new Error('Failed to create folder in ZIP');
+
+    // Download and add files to ZIP
+    const downloadPromises = files.map(async (file) => {
+      try {
+        const response = await fetch(file.url);
+        const blob = await response.blob();
+        folder.file(file.name, blob);
+      } catch (error) {
+        console.error(`Failed to download file: ${file.name}`, error);
+        throw error;
+      }
+    });
+
+    await Promise.all(downloadPromises);
+
+    // Generate and download ZIP file
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    saveAs(zipBlob, `${folderName}_files.zip`);
+  } catch (error) {
+    console.error('Failed to create ZIP file:', error);
+    throw error;
+  }
+};
+
+/**
+ * Upload a file with progress tracking
+ * @param file - file to upload
+ * @param folderId - optional folder id
+ * @returns Promise with download URL
+ */
+export const uploadFileWithProgress = async (
+  file: File,
+  folderId?: string
+): Promise<string> => {
+  const path = folderId
+    ? `uploads/${folderId}/${file.name}`
+    : `uploads/${uuidv4()}_${file.name}`;
+
+  const storageRef = ref(storage, path);
+  const uploadTask = uploadBytesResumable(storageRef, file);
+
+  return new Promise((resolve, reject) => {
+    uploadTask.on(
+      "state_changed",
+      (snapshot) => {
+        // Track upload progress if needed
+        const progress =
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        console.log("Upload is " + progress + "% done");
+      },
+      (error) => {
+        // Handle errors
+        reject(error);
+      },
+      async () => {
+        // Upload completed successfully
+        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+        resolve(downloadURL);
+      }
+    );
+  });
+};
+
+/**
+ * Upload multiple files to the same folder with progress tracking
+ * @param files - array of files to upload
+ * @param folderId - folder id
+ * @returns Promise with array of download URLs
+ */
+export const uploadFilesWithProgress = async (
+  files: File[],
+  folderId: string
+): Promise<string[]> => {
+  const uploadPromises = files.map((file) => uploadFileWithProgress(file, folderId));
+  return Promise.all(uploadPromises);
+};

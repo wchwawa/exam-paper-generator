@@ -9,29 +9,31 @@ const testPaper = {
       questionType: 'mcq', //mcq, 
       answer: 'A', 
       userAnswer: 'B',
-      explanation: '', //explanation
-      tips: '', //tips 
-
+      hint: '', //hint
       mcqOptions: [
         {
           optionId: 'A',
           optionTitle: 'Paris',
           optionValue: 'Paris',
+          explanation: '', //explanation
         },
         {
           optionId: 'B',
           optionTitle: 'Paris',
           optionValue: 'Paris',
+          explanation: '', //explanation
         },
         {
           optionId: 'C',
           optionTitle: 'Paris',
           optionValue: 'Paris',
+          explanation: '', //explanation
         },
         {
           optionId: 'D',
           optionTitle: 'Paris',
           optionValue: 'Paris',
+          explanation: '', //explanation
         },
       ],
     },
@@ -49,4 +51,3 @@ const testPaper = {
 
 
 }
-

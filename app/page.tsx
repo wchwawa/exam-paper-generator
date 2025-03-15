@@ -1,103 +1,273 @@
-import Image from "next/image";
+"use client";
+
+import { Accordion } from "@chakra-ui/react";
+import { useState, useRef, useCallback } from "react";
+import { IconFileSmile, IconFileUpload, IconX } from "@tabler/icons-react";
+import {
+  Box,
+  Button,
+  createListCollection,
+  Portal,
+  Select,
+  Heading,
+  Text,
+  Flex,
+  HStack,
+  Tag,
+} from "@chakra-ui/react";
+import { v4 as uuidv4 } from "uuid";
+import { useRouter } from "next/navigation";
+import { uploadFilesWithProgress } from "@/utils/firebase/storage-service";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const router = useRouter();
+  const [files, setFiles] = useState<File[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const [folderUid, setFolderUid] = useState<string>("");
+  const dropZoneRef = useRef<HTMLDivElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [selectedQuestionTypes, setSelectedQuestionTypes] = useState<string[]>(
+    []
+  );
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(false);
+
+      const droppedFiles = Array.from(e.dataTransfer.files);
+      if (droppedFiles.length > 0 && !folderUid) {
+        setFolderUid(uuidv4());
+      }
+      setFiles((prevFiles) => [...prevFiles, ...droppedFiles]);
+    },
+    [folderUid]
+  );
+
+  const handleFileInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files && e.target.files.length > 0) {
+        if (!folderUid) {
+          setFolderUid(uuidv4());
+        }
+        const selectedFiles = Array.from(e.target.files);
+        setFiles((prevFiles) => [...prevFiles, ...selectedFiles]);
+      }
+    },
+    [folderUid]
+  );
+
+  const removeFile = useCallback((fileIndex: number) => {
+    setFiles((prevFiles) =>
+      prevFiles.filter((_, index) => index !== fileIndex)
+    );
+  }, []);
+
+  const handleClickUpload = useCallback(() => {
+    document.getElementById("fileInput")?.click();
+  }, []);
+
+  const handleGenerate = useCallback(async () => {
+    if (files.length > 0) {
+      setIsUploading(true);
+      try {
+        // Generate folder ID if not already set
+        const uploadFolderId = folderUid || uuidv4();
+        if (!folderUid) {
+          setFolderUid(uploadFolderId);
+        }
+
+        // Upload all files to the same folder
+        await uploadFilesWithProgress(files, uploadFolderId);
+
+        // Navigate to results page with folder ID
+        router.push(
+          `/create-paper?folderUid=${uploadFolderId}&types=${selectedQuestionTypes.join(
+            ","
+          )}`
+        );
+      } catch (error) {
+        console.error("Error uploading files:", error);
+        // Handle error (could add error state and display to user)
+      } finally {
+        setIsUploading(false);
+      }
+    }
+  }, [router, files, folderUid, selectedQuestionTypes]);
+
+  const handleQuestionTypeChange = useCallback((values: string[]) => {
+    setSelectedQuestionTypes(values);
+  }, []);
+
+  return (
+    <Box
+      bg="gray.100"
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+      w="100vw"
+      h="100vh"
+    >
+      <Flex flexDirection="column" alignItems="center" justifyContent="center">
+        <IconFileSmile size={64} />
+        <Heading mt={2} fontSize="4xl" fontWeight="medium">
+          Exam Paper Generator
+        </Heading>
+        <Text mt={3} color="gray.500">
+          Simply add your lecture file, we will help you to create{" "}
+        </Text>
+        <Box
+          bg="white"
+          mt={6}
+          border="1px solid"
+          w="650px"
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
+          justifyContent="center"
+          borderColor="gray.200"
+          px={4}
+          py={2}
+          borderRadius="md"
+        >
+          <Flex
+            ref={dropZoneRef}
+            borderBottom="1px"
+            w="full"
+            px={2}
+            color="gray.500"
+            alignItems="center"
+            h="150px"
+            justifyContent="center"
+            flexDirection="column"
+            border={isDragging ? "2px dashed" : "1px dashed"}
+            borderColor={isDragging ? "blue.500" : "gray.300"}
+            bg={isDragging ? "blue.50" : "transparent"}
+            transition="all 0.2s"
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={handleClickUpload}
+            cursor="pointer"
+            position="relative"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+            <input
+              type="file"
+              id="fileInput"
+              multiple
+              onChange={handleFileInputChange}
+              style={{ display: "none" }}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+            {files.length > 0 ? (
+              <>
+                <Box w="100%" p={3}></Box>
+                <Text mb={2} fontWeight="medium">
+                  Selected Files:
+                </Text>
+                <Flex wrap="wrap" gap={2}>
+                  {files.map((file, index) => (
+                    <Tag.Root
+                      key={index}
+                      size="md"
+                      colorScheme="blue"
+                      borderRadius="full"
+                    >
+                      <Tag.Label>{file.name}</Tag.Label>
+                      {/* <Tag.CloseButton
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeFile(index);
+                        }}
+                      /> */}
+                    </Tag.Root>
+                  ))}
+                </Flex>
+              </>
+            ) : (
+              <>
+                <IconFileUpload size={42} />
+                <Text mt={2}>Drag & Drop or Click to Upload Files</Text>
+                <Text fontSize="xs" color="gray.400">
+                  Accepts PDF, PPTX, Word and More
+                </Text>
+              </>
+            )}
+          </Flex>
+          <Flex
+            borderTop="1px solid"
+            borderColor="gray.200"
+            w="full"
+            px={2}
+            py={2}
+            justifyContent="space-between"
           >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+            <Box w="180px">
+              <Select.Root
+                size="md"
+                collection={questionTypes}
+                multiple
+                value={selectedQuestionTypes}
+              >
+                <Select.HiddenSelect />
+
+                <Select.Control>
+                  <Select.Trigger>
+                    <Select.ValueText placeholder="Select Question Type" />
+                  </Select.Trigger>
+                </Select.Control>
+                <Portal>
+                  <Select.Positioner>
+                    <Select.Content>
+                      {questionTypes.items.map((item) => (
+                        <Select.Item key={item.value} item={item}>
+                          {item.label}
+                          <Select.ItemIndicator />
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Positioner>
+                </Portal>
+              </Select.Root>
+            </Box>
+
+            <Button
+              onClick={handleGenerate}
+              disabled={files.length === 0 || isUploading}
+              loading={isUploading}
+              loadingText="Uploading"
+            >
+              {isUploading ? "Uploading..." : "Generate"}
+            </Button>
+          </Flex>
+        </Box>
+      </Flex>
+    </Box>
   );
 }
+
+const questionTypes = createListCollection({
+  items: [
+    {
+      label: "Multiple Choice",
+      value: "mcq",
+    },
+    {
+      label: "Short Answer",
+      value: "short_answer",
+    },
+  ],
+});
