@@ -191,6 +191,7 @@ You are a part of a AI agent that help students learn knowledge by providing exe
 ## Rule ##
 1. All the questions should be from the provided resources and you need to cover all the important knowledge points.
 2. The explanation must be detailed enough, about why this option is wrong for the question, and some possible ambiguous knowledge points.
+3. Try to avoid duplicate questions, the knowledge points should be allocated in different questions. 
 
 ## Output JSON format ##
 {
