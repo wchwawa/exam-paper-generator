@@ -70,6 +70,7 @@ const MCQOption: FC<{
 };
 
 interface MCQProps {
+  questionNumber: number;
   title: string;
   options: { title: string; value: string; explanation: string }[];
   hint?: string;
@@ -81,6 +82,7 @@ interface MCQProps {
 }
 
 export default function MCQ({
+  questionNumber,
   title,
   options,
   hint,
@@ -98,7 +100,7 @@ export default function MCQ({
   return (
     <Box mt={2}>
       <Text mt={2} fontSize="lg" className=" text-gray-500">
-        Question1
+        Question {questionNumber}
       </Text>
       <Text fontSize="xl">{title}</Text>
 

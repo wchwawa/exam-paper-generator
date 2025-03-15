@@ -17,101 +17,38 @@ import {
   Spinner,
 } from "@chakra-ui/react";
 import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { useQueryState } from "nuqs";
+import { Question } from "@/store/paperStore";
+
+interface MCQOption {
+  option: string;
+  explanation: string;
+}
+
+interface MultipleChoiceQuestion {
+  question: string;
+  options: MCQOption[];
+  answer: string;
+}
+
+interface ShortAnswerQuestion {
+  question: string;
+  answer: string;
+}
+
+interface APIResponse {
+  success: boolean;
+  message: string;
+  data: {
+    examPaper: {
+      multiple_choice: MultipleChoiceQuestion[];
+      "short-answer": ShortAnswerQuestion[];
+    };
+  };
+}
 
 // Example questions data
-const exampleQuestions = [
-  {
-    questionId: "q1",
-    questionTitle:
-      "Which programming language is known for its simplicity and readability?",
-    questionType: "mcq" as const,
-    answer: "A",
-
-    hint: "Think about which language emphasizes readability in its design philosophy.",
-    mcqOptions: [
-      {
-        optionId: "A",
-        optionTitle: "Python",
-        optionValue: "Python",
-        explanation:
-          "Python's design philosophy emphasizes code readability with its notable use of significant whitespace and clean syntax.",
-      },
-      {
-        optionId: "B",
-        optionTitle: "Java",
-        optionValue: "Java",
-        explanation:
-          "While Java is widely used, its syntax is more verbose compared to Python, requiring more boilerplate code.",
-        hint: "Java's syntax requires explicit type declarations and more ceremony.",
-      },
-      {
-        optionId: "C",
-        optionTitle: "C++",
-        optionValue: "C++",
-        explanation:
-          "C++ is a powerful language but is known for its complexity and steep learning curve.",
-        hint: "C++ provides low-level control but at the cost of simplicity.",
-      },
-      {
-        optionId: "D",
-        optionTitle: "JavaScript",
-        optionValue: "JavaScript",
-        explanation:
-          "JavaScript has flexible syntax but can be confusing due to its quirks and type coercion.",
-        hint: "JavaScript's flexibility can sometimes lead to unexpected behavior.",
-      },
-    ],
-  },
-  {
-    questionId: "q2",
-    questionTitle: "What is the time complexity of binary search?",
-    questionType: "mcq" as const,
-    answer: "B",
-    explanation:
-      "Binary search repeatedly divides the search space in half, resulting in a logarithmic time complexity.",
-    hint: "Consider how many steps it takes to find an element as the input size grows.",
-    mcqOptions: [
-      {
-        optionId: "A",
-        optionTitle: "O(n)",
-        optionValue: "O(n)",
-        explanation:
-          "Linear search has O(n) complexity as it needs to check each element in the worst case.",
-        hint: "This is the complexity of checking every element one by one.",
-      },
-      {
-        optionId: "B",
-        optionTitle: "O(log n)",
-        optionValue: "O(log n)",
-        explanation:
-          "Binary search achieves O(log n) by halving the search space in each step.",
-        hint: "Think about how many times you can divide n by 2 before reaching 1.",
-      },
-      {
-        optionId: "C",
-        optionTitle: "O(n²)",
-        optionValue: "O(n²)",
-        explanation:
-          "Quadratic complexity is typically seen in nested loops, not in binary search.",
-        hint: "This complexity is too high for a search algorithm.",
-      },
-      {
-        optionId: "D",
-        optionTitle: "O(1)",
-        optionValue: "O(1)",
-        explanation:
-          "Constant time complexity is not possible for searching in an unsorted array.",
-        hint: "This would mean finding the element instantly, regardless of array size.",
-      },
-    ],
-  },
-  {
-    hint: "Think about which language emphasizes readability in its design philosophy.",
-    questionId: "q3",
-    questionTitle: "How to implement a binary tree?",
-    questionType: "short-answer" as const,
-  },
-];
 
 export default function PaperView() {
   const {
@@ -121,17 +58,101 @@ export default function PaperView() {
     hideMarking,
     isMarkingRevealed,
     getQuestionProgress,
+    questions,
   } = useQuestionStore();
+
+  const router = useRouter();
+
+  const [folderId] = useQueryState("folderId");
+  const [mcqAnswerNumber] = useQueryState("mcqAnswerNumber");
+  const [shortAnswerNumber] = useQueryState("shortAnswerNumber");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const startGenerate = async (signal: AbortSignal) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await fetch("/api/generatePaper", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          folderId,
+          mcqAnswerNumber,
+          shortAnswerNumber,
+        }),
+        signal,
+      });
+
+      const result: APIResponse = await response.json();
+
+      if (result.success) {
+        const { multiple_choice, "short-answer": shortAnswer } =
+          result.data.examPaper;
+
+        // Transform the questions into the expected format
+        const questions: Question[] = [
+          ...multiple_choice.map(
+            (q: MultipleChoiceQuestion, index: number) => ({
+              questionId: `mcq-${index}`,
+              questionTitle: q.question,
+              questionType: "mcq" as const,
+              answer: q.answer,
+              hint: "", // Required by BaseQuestion interface
+              explanation: q.options.find((opt) =>
+                opt.option.startsWith(q.answer + ".")
+              )?.explanation,
+              mcqOptions: q.options.map((opt: MCQOption, optIndex: number) => {
+                const optionId = String.fromCharCode(65 + optIndex); // A, B, C, D
+                return {
+                  optionId,
+                  optionTitle: opt.option.substring(3), // Remove "A. ", "B. " etc
+                  optionValue: optionId,
+                  explanation: opt.explanation,
+                };
+              }),
+            })
+          ),
+          ...shortAnswer.map((q: ShortAnswerQuestion, index: number) => ({
+            questionId: `sa-${index}`,
+            answer: q.answer,
+            questionTitle: q.question,
+            questionType: "short-answer" as const,
+            hint: "", // Required by BaseQuestion interface
+            explanation: q.answer,
+          })),
+        ];
+
+        // Load the questions into the store
+        loadQuestions("generated-paper", questions);
+      } else {
+        setError("Failed to generate exam paper");
+      }
+
+      setIsLoading(false);
+    } catch (error: any) {
+      if (error?.name === "AbortError") {
+        return;
+      }
+      console.error("Generation failed:", error);
+      setError("Failed to generate exam paper: " + error.message);
+    }
+  };
+
+  useEffect(() => {
+    const abortController = new AbortController();
+    startGenerate(abortController.signal);
+    return () => {
+      abortController.abort();
+    };
+  }, []);
 
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
   const { generatePdf, isGenerating } = usePdfGenerator();
-
-  // Initialize questions when component mounts
-  useEffect(() => {
-    loadQuestions("example-paper", exampleQuestions);
-  }, []);
 
   // Timer effect
   useEffect(() => {
@@ -166,15 +187,39 @@ export default function PaperView() {
     revealMarking();
   };
 
-  const handleDownloadPdf = async () => {
-    if (contentRef.current) {
-      await generatePdf(
-        contentRef,
-        "Data Structure And Algorithm Practice Exam",
-        exampleQuestions
-      );
-    }
-  };
+  // const handleDownloadPdf = async () => {
+  //   if (contentRef.current) {
+  //     await generatePdf(
+  //       contentRef,
+  //       "Data Structure And Algorithm Practice Exam",
+  //       exampleQuestions
+  //     );
+  //   }
+  // };
+
+  if (isLoading) {
+    return (
+      <Box h="100vh" display="flex" alignItems="center" justifyContent="center">
+        <Flex direction="column" align="center" gap={4}>
+          <Spinner size="xl" />
+          <Text>Generating your exam paper...</Text>
+        </Flex>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box h="100vh" display="flex" alignItems="center" justifyContent="center">
+        <Flex direction="column" align="center" gap={4}>
+          <Text color="red.500">{error}</Text>
+          <Button onClick={() => startGenerate(new AbortController().signal)}>
+            Try Again
+          </Button>
+        </Flex>
+      </Box>
+    );
+  }
 
   return (
     <Box>
@@ -233,7 +278,7 @@ export default function PaperView() {
             <Tag.Label>AI Generated Practice Exam</Tag.Label>
           </Tag.Root>
           <Tag.Root>
-            <Tag.Label>{exampleQuestions.length} Questions</Tag.Label>
+            <Tag.Label>{Object.keys(questions).length} Questions</Tag.Label>
           </Tag.Root>
         </Group>
       </Box>
@@ -251,29 +296,37 @@ export default function PaperView() {
           </Heading>
 
           <section className="flex flex-col gap-5">
-            {exampleQuestions.map((question, index) => {
-              const progress = getQuestionProgress(question.questionId);
+            {Object.entries(questions).map(([questionId, question], index) => {
+              const progress = getQuestionProgress(questionId);
+              const originalQuestion = progress?.originalQuestion;
 
-              if (question.questionType === "mcq") {
+              if (!originalQuestion) {
+                return null;
+              }
+
+              if (originalQuestion.questionType === "mcq") {
                 return (
-                  <Box key={question.questionId} className="question-card">
+                  <Box key={questionId} className="question-card">
                     <MCQ
-                      title={`${index + 1}. ${question.questionTitle}`}
-                      options={question.mcqOptions.map((opt) => ({
+                      questionNumber={index + 1}
+                      title={`${index + 1}. ${originalQuestion.questionTitle}`}
+                      options={originalQuestion.mcqOptions.map((opt) => ({
                         title: opt.optionTitle,
                         value: opt.optionId,
                         explanation: opt.explanation,
                       }))}
-                      hint={question.hint}
+                      hint={originalQuestion.hint}
                       explanation={
-                        progress?.isRevealed ? question.explanation : undefined
+                        progress?.isRevealed
+                          ? originalQuestion.answer
+                          : undefined
                       }
-                      onAnswer={(answer) =>
-                        answerQuestion(question.questionId, answer)
-                      }
+                      onAnswer={(answer) => answerQuestion(questionId, answer)}
                       userAnswer={progress?.userAnswer}
                       correctAnswer={
-                        progress?.isRevealed ? question.answer : undefined
+                        progress?.isRevealed
+                          ? originalQuestion.answer
+                          : undefined
                       }
                       isRevealed={progress?.isRevealed}
                     />
@@ -282,16 +335,18 @@ export default function PaperView() {
               }
 
               return (
-                <Box key={question.questionId} className="question-card">
+                <Box key={questionId} className="question-card">
                   <SimpleAnswerQuestion
-                    hint={question.hint}
-                    title={`${index + 1}. ${question.questionTitle}`}
+                    questionNumber={index + 1}
+                    hint={originalQuestion.hint}
+                    title={`${index + 1}. ${originalQuestion.questionTitle}`}
                     explanation={
-                      progress?.isRevealed ? question.explanation : undefined
+                      progress?.isRevealed &&
+                      originalQuestion.questionType === "short-answer"
+                        ? originalQuestion.answer
+                        : undefined
                     }
-                    onAnswer={(answer) =>
-                      answerQuestion(question.questionId, answer)
-                    }
+                    onAnswer={(answer) => answerQuestion(questionId, answer)}
                     userAnswer={progress?.userAnswer}
                   />
                 </Box>
@@ -347,12 +402,7 @@ export default function PaperView() {
                 Time spent: {formatTime(elapsedTime)}
               </Text>
             )}
-            <Button
-              variant="outline"
-              w="100%"
-              onClick={handleDownloadPdf}
-              disabled={isGenerating}
-            >
+            <Button variant="outline" w="100%" disabled={isGenerating}>
               {isGenerating && <Spinner size="sm" mr={2} />}
               {isGenerating ? "Generating PDF..." : "Download as PDF"}
             </Button>
