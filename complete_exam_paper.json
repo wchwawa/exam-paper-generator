@@ -1,0 +1,310 @@
+{
+  "paperId": "123",
+  "paperTitle": "Test Paper",
+  "question": [
+    {
+      "questionId": "1",
+      "questionTitle": "[Week1] multiple choice question #1: Which of the following is the correct HTML element for the largest heading?",
+      "questionType": "mcq",
+      "answer": "A",
+      "userAnswer": "",
+      "hint": "<h1> is the correct HTML element for the largest heading, while <h6> is for the smallest.",
+      "mcqOptions": [
+        {
+          "optionId": "X",
+          "optionTitle": "A. <h1>",
+          "optionValue": "A. <h1>",
+          "explanation": ""
+        },
+        {
+          "optionId": "X",
+          "optionTitle": "B. <h6>",
+          "optionValue": "B. <h6>",
+          "explanation": ""
+        },
+        {
+          "optionId": "X",
+          "optionTitle": "C. <heading>",
+          "optionValue": "C. <heading>",
+          "explanation": ""
+        },
+        {
+          "optionId": "X",
+          "optionTitle": "D. <head>",
+          "optionValue": "D. <head>",
+          "explanation": ""
+        }
+      ],
+      "learningResource": "https://www.youtube.com/results?search_query=%5BWeek1%5D%20multiple%20choice%20question%20%231%3A%20Which%20of%20the%20following%20is%20the%20correct%20HTML%20element%20for%20the%20largest%20heading%3F"
+    },
+    {
+      "questionId": "2",
+      "questionTitle": "[Week1] multiple choice question #2: What does DOM stand for in web development?",
+      "questionType": "mcq",
+      "answer": "A",
+      "userAnswer": "",
+      "hint": "DOM stands for Document Object Model, which is a programming interface for web documents.",
+      "mcqOptions": [
+        {
+          "optionId": "X",
+          "optionTitle": "A. Document Object Model",
+          "optionValue": "A. Document Object Model",
+          "explanation": ""
+        },
+        {
+          "optionId": "X",
+          "optionTitle": "B. Data Object Management",
+          "optionValue": "B. Data Object Management",
+          "explanation": ""
+        },
+        {
+          "optionId": "X",
+          "optionTitle": "C. Digital Object Module",
+          "optionValue": "C. Digital Object Module",
+          "explanation": ""
+        },
+        {
+          "optionId": "X",
+          "optionTitle": "D. Dynamic Object Mapping",
+          "optionValue": "D. Dynamic Object Mapping",
+          "explanation": ""
+        }
+      ],
+      "learningResource": "https://www.youtube.com/results?search_query=%5BWeek1%5D%20multiple%20choice%20question%20%232%3A%20What%20does%20DOM%20stand%20for%20in%20web%20development%3F"
+    },
+    {
+      "questionId": "3",
+      "questionTitle": "[Week1] multiple choice question #3: Which event occurs when the user clicks on an HTML element?",
+      "questionType": "mcq",
+      "answer": "C",
+      "userAnswer": "",
+      "hint": "The onclick event occurs when the user clicks on an HTML element.",
+      "mcqOptions": [
+        {
+          "optionId": "X",
+          "optionTitle": "A. onmouseover",
+          "optionValue": "A. onmouseover",
+          "explanation": ""
+        },
+        {
+          "optionId": "X",
+          "optionTitle": "B. onchange",
+          "optionValue": "B. onchange",
+          "explanation": ""
+        },
+        {
+          "optionId": "X",
+          "optionTitle": "C. onclick",
+          "optionValue": "C. onclick",
+          "explanation": ""
+        },
+        {
+          "optionId": "X",
+          "optionTitle": "D. onload",
+          "optionValue": "D. onload",
+          "explanation": ""
+        }
+      ],
+      "learningResource": "https://www.youtube.com/results?search_query=%5BWeek1%5D%20multiple%20choice%20question%20%233%3A%20Which%20event%20occurs%20when%20the%20user%20clicks%20on%20an%20HTML%20element%3F"
+    },
+    {
+      "questionId": "4",
+      "questionTitle": "[Week1] essay question #1: Explain the relationship between HTML, the DOM, and events in web development.",
+      "questionType": "short-answer",
+      "userAnswer": "",
+      "explanation": "HTML is the standard markup language used to create web pages. It provides the structure of a webpage by using elements and tags. The DOM (Document Object Model) is an interface that allows programs and scripts to dynamically access and update the content, structure, and style of a document. It represents the page so that programs can change the document structure, style, and content. Events are actions or occurrences that happen in the system you are programming, which the system tells you about so your code can respond to them. In web development, events are often triggered by user actions such as clicking, typing, or moving the mouse. The DOM allows developers to attach event listeners to HTML elements, enabling interactive and dynamic web pages.",
+      "learningResource": "https://www.youtube.com/results?search_query=%5BWeek1%5D%20essay%20question%20%231%3A%20Explain%20the%20relationship%20between%20HTML%2C%20the%20DOM%2C%20and%20events%20in%20web%20development."
+    },
+    {
+      "questionId": "5",
+      "questionTitle": "[Week2] multiple choice question #1: Which of the following is a common method for debugging JavaScript code?",
+      "questionType": "mcq",
+      "answer": "A",
+      "userAnswer": "",
+      "hint": "Using console.log() statements is a common method to output values and track the flow of execution in JavaScript for debugging purposes.",
+      "mcqOptions": [
+        {
+          "optionId": "X",
+          "optionTitle": "A. Using console.log() statements",
+          "optionValue": "A. Using console.log() statements",
+          "explanation": ""
+        },
+        {
+          "optionId": "X",
+          "optionTitle": "B. Writing code in a different programming language",
+          "optionValue": "B. Writing code in a different programming language",
+          "explanation": ""
+        },
+        {
+          "optionId": "X",
+          "optionTitle": "C. Ignoring errors and hoping they resolve themselves",
+          "optionValue": "C. Ignoring errors and hoping they resolve themselves",
+          "explanation": ""
+        },
+        {
+          "optionId": "X",
+          "optionTitle": "D. Using a text editor without any debugging tools",
+          "optionValue": "D. Using a text editor without any debugging tools",
+          "explanation": ""
+        }
+      ],
+      "learningResource": "https://www.youtube.com/results?search_query=%5BWeek2%5D%20multiple%20choice%20question%20%231%3A%20Which%20of%20the%20following%20is%20a%20common%20method%20for%20debugging%20JavaScript%20code%3F"
+    },
+    {
+      "questionId": "6",
+      "questionTitle": "[Week2] multiple choice question #2: What is pre-validation in the context of JavaScript?",
+      "questionType": "mcq",
+      "answer": "B",
+      "userAnswer": "",
+      "hint": "Pre-validation refers to the process of validating data on the client-side before it is submitted to the server, ensuring that the data meets certain criteria.",
+      "mcqOptions": [
+        {
+          "optionId": "X",
+          "optionTitle": "A. Checking data on the server after submission",
+          "optionValue": "A. Checking data on the server after submission",
+          "explanation": ""
+        },
+        {
+          "optionId": "X",
+          "optionTitle": "B. Validating data on the client-side before submission",
+          "optionValue": "B. Validating data on the client-side before submission",
+          "explanation": ""
+        },
+        {
+          "optionId": "X",
+          "optionTitle": "C. Ignoring data validation entirely",
+          "optionValue": "C. Ignoring data validation entirely",
+          "explanation": ""
+        },
+        {
+          "optionId": "X",
+          "optionTitle": "D. Validating data only after an error occurs",
+          "optionValue": "D. Validating data only after an error occurs",
+          "explanation": ""
+        }
+      ],
+      "learningResource": "https://www.youtube.com/results?search_query=%5BWeek2%5D%20multiple%20choice%20question%20%232%3A%20What%20is%20pre-validation%20in%20the%20context%20of%20JavaScript%3F"
+    },
+    {
+      "questionId": "7",
+      "questionTitle": "[Week2] multiple choice question #3: Which of the following is NOT a feature of JavaScript?",
+      "questionType": "mcq",
+      "answer": "B",
+      "userAnswer": "",
+      "hint": "JavaScript is a dynamically typed language, meaning that it does not have static typing. It supports object-oriented, event-driven, and functional programming paradigms.",
+      "mcqOptions": [
+        {
+          "optionId": "X",
+          "optionTitle": "A. Object-oriented programming",
+          "optionValue": "A. Object-oriented programming",
+          "explanation": ""
+        },
+        {
+          "optionId": "X",
+          "optionTitle": "B. Static typing",
+          "optionValue": "B. Static typing",
+          "explanation": ""
+        },
+        {
+          "optionId": "X",
+          "optionTitle": "C. Event-driven programming",
+          "optionValue": "C. Event-driven programming",
+          "explanation": ""
+        },
+        {
+          "optionId": "X",
+          "optionTitle": "D. Functional programming",
+          "optionValue": "D. Functional programming",
+          "explanation": ""
+        }
+      ],
+      "learningResource": "https://www.youtube.com/results?search_query=%5BWeek2%5D%20multiple%20choice%20question%20%233%3A%20Which%20of%20the%20following%20is%20NOT%20a%20feature%20of%20JavaScript%3F"
+    },
+    {
+      "questionId": "8",
+      "questionTitle": "[Week2] essay question #1: Discuss the importance of debugging and pre-validation in JavaScript development. How do these practices contribute to the overall quality and reliability of web applications?",
+      "questionType": "short-answer",
+      "userAnswer": "",
+      "explanation": "Debugging is crucial in JavaScript development as it helps identify and fix errors in the code, ensuring that the application functions as intended. Effective debugging can prevent runtime errors and improve the user experience by providing a smooth and error-free interaction. Pre-validation, on the other hand, enhances data integrity by ensuring that user inputs meet the required criteria before being processed by the server. This reduces the risk of errors and security vulnerabilities, such as SQL injection or cross-site scripting. Together, debugging and pre-validation contribute to the overall quality and reliability of web applications by ensuring that they are robust, secure, and user-friendly.",
+      "learningResource": "https://www.youtube.com/results?search_query=%5BWeek2%5D%20essay%20question%20%231%3A%20Discuss%20the%20importance%20of%20debugging%20and%20pre-validation%20in%20JavaScript%20development.%20How%20do%20these%20practices%20contribute%20to%20the%20overall%20quality%20and%20reliability%20of%20web%20applications%3F"
+    },
+    {
+      "questionId": "9",
+      "questionTitle": "[Week3] multiple choice question #1: Which of the following best describes the purpose of acknowledging the Traditional Owners of Australia in academic settings?",
+      "questionType": "mcq",
+      "answer": "B",
+      "userAnswer": "",
+      "hint": "Acknowledging the Traditional Owners is a way to show respect and recognize the enduring relationship Indigenous peoples have with their land, water, and culture.",
+      "mcqOptions": [
+        {
+          "optionId": "X",
+          "optionTitle": "A. To fulfill a legal requirement.",
+          "optionValue": "A. To fulfill a legal requirement.",
+          "explanation": ""
+        },
+        {
+          "optionId": "X",
+          "optionTitle": "B. To recognize and respect the cultural heritage and ongoing connection of Indigenous peoples to the land.",
+          "optionValue": "B. To recognize and respect the cultural heritage and ongoing connection of Indigenous peoples to the land.",
+          "explanation": ""
+        },
+        {
+          "optionId": "X",
+          "optionTitle": "C. To promote tourism in Australia.",
+          "optionValue": "C. To promote tourism in Australia.",
+          "explanation": ""
+        },
+        {
+          "optionId": "X",
+          "optionTitle": "D. To provide a historical overview of Australian history.",
+          "optionValue": "D. To provide a historical overview of Australian history.",
+          "explanation": ""
+        }
+      ],
+      "learningResource": "https://www.youtube.com/results?search_query=%5BWeek3%5D%20multiple%20choice%20question%20%231%3A%20Which%20of%20the%20following%20best%20describes%20the%20purpose%20of%20acknowledging%20the%20Traditional%20Owners%20of%20Australia%20in%20academic%20settings%3F"
+    },
+    {
+      "questionId": "10",
+      "questionTitle": "[Week3] multiple choice question #2: What is the primary focus of INFO5992: Understanding IT Innovations?",
+      "questionType": "mcq",
+      "answer": "B",
+      "userAnswer": "",
+      "hint": "INFO5992 is designed to help students understand the impact and development of IT innovations, focusing on how these innovations shape and are shaped by various factors.",
+      "mcqOptions": [
+        {
+          "optionId": "X",
+          "optionTitle": "A. To explore historical events in IT.",
+          "optionValue": "A. To explore historical events in IT.",
+          "explanation": ""
+        },
+        {
+          "optionId": "X",
+          "optionTitle": "B. To understand the impact and development of IT innovations.",
+          "optionValue": "B. To understand the impact and development of IT innovations.",
+          "explanation": ""
+        },
+        {
+          "optionId": "X",
+          "optionTitle": "C. To learn programming languages.",
+          "optionValue": "C. To learn programming languages.",
+          "explanation": ""
+        },
+        {
+          "optionId": "X",
+          "optionTitle": "D. To study the geographical distribution of IT companies.",
+          "optionValue": "D. To study the geographical distribution of IT companies.",
+          "explanation": ""
+        }
+      ],
+      "learningResource": "https://www.youtube.com/results?search_query=%5BWeek3%5D%20multiple%20choice%20question%20%232%3A%20What%20is%20the%20primary%20focus%20of%20INFO5992%3A%20Understanding%20IT%20Innovations%3F"
+    },
+    {
+      "questionId": "11",
+      "questionTitle": "[Week3] essay question #1: Discuss the significance of acknowledging the Traditional Owners of Australia in the context of IT innovations and education. How can this practice influence the development and implementation of IT solutions?",
+      "questionType": "short-answer",
+      "userAnswer": "",
+      "explanation": "Acknowledging the Traditional Owners of Australia in the context of IT innovations and education is significant as it fosters a respectful and inclusive environment that values diverse perspectives. This practice can influence the development and implementation of IT solutions by encouraging the incorporation of Indigenous knowledge systems and cultural considerations into technology design and application. By recognizing the unique insights and contributions of Indigenous communities, IT professionals can create more culturally sensitive and effective solutions that address the needs of all users. Additionally, this acknowledgment can promote collaboration and partnership with Indigenous communities, leading to innovations that are not only technologically advanced but also socially and culturally responsible.",
+      "learningResource": "https://www.youtube.com/results?search_query=%5BWeek3%5D%20essay%20question%20%231%3A%20Discuss%20the%20significance%20of%20acknowledging%20the%20Traditional%20Owners%20of%20Australia%20in%20the%20context%20of%20IT%20innovations%20and%20education.%20How%20can%20this%20practice%20influence%20the%20development%20and%20implementation%20of%20IT%20solutions%3F"
+    }
+  ]
+}

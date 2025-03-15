@@ -23,6 +23,7 @@
     "dotenv": "^16.4.7",
     "file-saver": "^2.0.5",
     "firebase": "^11.4.0",
+    "firebase-admin": "^13.2.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.0",
     "jszip": "^3.10.1",
