@@ -1,9 +1,32 @@
-import { Box, Group, Heading, Tag } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Card,
+  Flex,
+  Group,
+  Heading,
+  Switch,
+  Tag,
+} from "@chakra-ui/react";
 
 export default function PaperView() {
   return (
     <Box>
-      <Box>
+      <style>
+        {`
+            body {
+                background-color: #f8f8f8;`}
+      </style>
+      <Box
+        zIndex={99}
+        position="fixed"
+        top={0}
+        bg="white"
+        p={4}
+        w="100%"
+        borderRadius="md"
+        boxShadow="md"
+      >
         <Heading>Data Structure and Algorithm</Heading>
         <Group spaceX={2}>
           <Tag.Root>
@@ -14,6 +37,33 @@ export default function PaperView() {
           </Tag.Root>
         </Group>
       </Box>
+
+      <Flex px={12} gapX={18} py={24}>
+        <Box w={"100%"} className="bg-white flex-1"></Box>
+        <Box
+          px={2}
+          py={2}
+          border="1px solid"
+          bg="white"
+          rounded="md"
+          borderColor="gray.300"
+          w={"360px"}
+          gapY={2}
+          display={"flex"}
+          flexDirection={"column"}
+        >
+          <Heading size="md">Actions</Heading>
+          <Button w="100%">Start Timed Practice</Button>
+          <Button variant="outline" w="100%">
+            Download as PDF
+          </Button>
+          <Switch.Root mt={1}>
+            <Switch.HiddenInput />
+            <Switch.Control />
+            <Switch.Label>Show Answers</Switch.Label>
+          </Switch.Root>
+        </Box>
+      </Flex>
     </Box>
   );
 }
