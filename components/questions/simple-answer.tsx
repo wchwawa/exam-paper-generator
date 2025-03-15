@@ -47,7 +47,7 @@ const SimpleAnswerQuestion: FC<{
         onChange={(e) => onAnswer?.(e.target.value)}
       />
       {explanation && (
-        <Alert.Root status="error">
+        <Alert.Root mt={2} status="error">
           <Alert.Indicator />
           <Alert.Content>
             <Alert.Title>hint</Alert.Title>
