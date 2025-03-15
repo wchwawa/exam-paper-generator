@@ -230,7 +230,7 @@ export default function PaperView() {
                       value: opt.optionId,
                       explanation: opt.explanation,
                     }))}
-                    hint={progress?.userAnswer ? question.hint : undefined}
+                    hint={question.hint}
                     explanation={
                       progress?.isRevealed ? question.explanation : undefined
                     }
