@@ -39,7 +39,11 @@ export default function PaperView() {
       </Box>
 
       <Flex px={12} gapX={18} py={24}>
-        <Box w={"100%"} className="bg-white flex-1"></Box>
+        <Box w={"100%"} px={4} py={3} className="bg-white flex-1">
+          <Heading size="2xl">
+            Data Structure And Algorithm Practice Exam
+          </Heading>
+        </Box>
         <Box
           px={2}
           py={2}
