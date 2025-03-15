@@ -11,30 +11,37 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { Input } from "@chakra-ui/react";
-import { Separator } from "@chakra-ui/react";
+
 import { IconAbc, IconInputSpark } from "@tabler/icons-react";
 import { useForm } from "react-hook-form";
 
+import { useQueryState } from "nuqs";
+import { useRouter } from "next/navigation";
+
 interface CreatePaperForm {
-  mcqQuestionsCount: number;
-  shortAnsQuestionsCount: number;
+  mcqAnswerNumber: number;
+  shortAnswerNumber: number;
 }
 
 export default function CreatePaper() {
+  const router = useRouter();
+  const [folderUid] = useQueryState("folderUid");
+
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<CreatePaperForm>({
     defaultValues: {
-      mcqQuestionsCount: 10,
-      shortAnsQuestionsCount: 2,
+      mcqAnswerNumber: 10,
+      shortAnswerNumber: 2,
     },
   });
 
-  const onSubmit = (data: CreatePaperForm) => {
-    console.log(data);
-    // Handle form submission here
+  const onSubmit = async (data: CreatePaperForm) => {
+    router.push(
+      `/loading-view?folderId=${folderUid}&mcqAnswerNumber=${data.mcqAnswerNumber}&shortAnswerNumber=${data.shortAnswerNumber}`
+    );
   };
 
   return (
@@ -98,7 +105,7 @@ export default function CreatePaper() {
                     type="number"
                     mt={1}
                     placeholder="Enter Number"
-                    {...register("mcqQuestionsCount", {
+                    {...register("mcqAnswerNumber", {
                       required: "MCQ questions count is required",
                       min: {
                         value: 0,
@@ -106,9 +113,9 @@ export default function CreatePaper() {
                       },
                     })}
                   />
-                  {errors.mcqQuestionsCount && (
+                  {errors.mcqAnswerNumber && (
                     <Text color="red.500" fontSize="sm">
-                      {errors.mcqQuestionsCount.message}
+                      {errors.mcqAnswerNumber.message}
                     </Text>
                   )}
                 </Field.Root>
@@ -141,7 +148,7 @@ export default function CreatePaper() {
                   type="number"
                   mt={1}
                   placeholder="Enter Number"
-                  {...register("shortAnsQuestionsCount", {
+                  {...register("shortAnswerNumber", {
                     required: "Short answer questions count is required",
                     min: {
                       value: 0,
@@ -149,9 +156,9 @@ export default function CreatePaper() {
                     },
                   })}
                 />
-                {errors.shortAnsQuestionsCount && (
+                {errors.shortAnswerNumber && (
                   <Text color="red.500" fontSize="sm">
-                    {errors.shortAnsQuestionsCount.message}
+                    {errors.shortAnswerNumber.message}
                   </Text>
                 )}
               </Box>

@@ -1,18 +1,59 @@
-'use client';
+"use client";
 
-import { Box, Center, Text, VStack, Image, Button } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Box, Center, Text, VStack, Image, Button } from "@chakra-ui/react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useQueryState } from "nuqs";
 
 export default function LoadingView() {
   const [progress, setProgress] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
   const router = useRouter();
 
+  const [folderId] = useQueryState("folderId");
+  const [mcqAnswerNumber] = useQueryState("mcqAnswerNumber");
+  const [shortAnswerNumber] = useQueryState("shortAnswerNumber");
+
+  const startGenerate = async (signal: AbortSignal) => {
+    try {
+      const response = await fetch("/api/generatePaper", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          folderId,
+          mcqAnswerNumber,
+          shortAnswerNumber,
+        }),
+        signal,
+      });
+
+      console.log(await response.json());
+
+      setProgress(100);
+      setIsCompleted(true);
+    } catch (error: any) {
+      if (error?.name === "AbortError") {
+        return;
+      }
+      console.error("Generation failed:", error);
+    }
+  };
+
   useEffect(() => {
-    // 快速增长到85%
+    const abortController = new AbortController();
+    startGenerate(abortController.signal);
+
+    return () => {
+      abortController.abort();
+    };
+  }, []);
+
+  useEffect(() => {
+    // Only animate up to 85% while waiting
     const fastInterval = setInterval(() => {
-      setProgress(prev => {
+      setProgress((prev) => {
         if (prev >= 85) {
           clearInterval(fastInterval);
           return 85;
@@ -20,24 +61,6 @@ export default function LoadingView() {
         return prev + 1;
       });
     }, 30);
-
-    // 慢速增长到100%
-    setTimeout(() => {
-      const slowInterval = setInterval(() => {
-        setProgress(prev => {
-          if (prev >= 100) {
-            clearInterval(slowInterval);
-            setIsCompleted(true);
-            return 100;
-          }
-          return prev + 0.2;
-        });
-      }, 100);
-
-      return () => {
-        clearInterval(slowInterval);
-      };
-    }, 85 * 30); // 等待快速增长完成
 
     return () => {
       clearInterval(fastInterval);
@@ -48,7 +71,9 @@ export default function LoadingView() {
     <Center h="100vh" bg="white">
       <VStack gap={8}>
         <Text fontSize="2xl" fontWeight="medium">
-          {isCompleted ? "Your paper is completed" : "We are preparing your paper"}
+          {isCompleted
+            ? "Your paper is completed"
+            : "We are preparing your paper"}
         </Text>
         <Box position="relative" w="500px" h="500px">
           <Image
@@ -61,23 +86,27 @@ export default function LoadingView() {
         </Box>
         {!isCompleted ? (
           <>
-            <Box w="400px" h="2px" bg="gray.100" borderRadius="full" overflow="hidden">
-              <Box 
-                w={`${progress}%`} 
-                h="100%" 
-                bg="blue.500" 
+            <Box
+              w="400px"
+              h="2px"
+              bg="gray.100"
+              borderRadius="full"
+              overflow="hidden"
+            >
+              <Box
+                w={`${progress}%`}
+                h="100%"
+                bg="blue.500"
                 transition="width 0.3s ease-in-out"
               />
             </Box>
-            <Text color="gray.500">
-              Extracting PDF Contents...
-            </Text>
+            <Text color="gray.500">Extracting PDF Contents...</Text>
           </>
         ) : (
           <Button
             colorScheme="blue"
             size="lg"
-            onClick={() => router.push('/paper-view')}
+            onClick={() => router.push("/paper-view")}
           >
             View Paper
           </Button>
@@ -85,4 +114,4 @@ export default function LoadingView() {
       </VStack>
     </Center>
   );
-} 
+}
