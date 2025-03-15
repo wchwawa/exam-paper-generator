@@ -177,7 +177,7 @@ export async function listFiles(userId: string) {
     });
 
     const files = await Promise.all(filesPromises);
-    console.log('Processed files:', files);
+    // console.log('Processed files:', files);
     
     return { files };
   } catch (error) {
@@ -270,7 +270,7 @@ export async function getCourseFiles(courseId: string) {
     });
 
     const files = (await Promise.all(filesPromises)).filter(file => file !== null);
-    console.log('Processed files:', files);
+    // console.log('Processed files:', files);
     return files;
   } catch (error) {
     console.error(`Error getting files for course ${courseId}:`, error);

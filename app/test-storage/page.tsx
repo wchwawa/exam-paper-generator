@@ -79,7 +79,7 @@ export default function TestStoragePage() {
       setError(null);
       console.log('开始获取课程文件:', selectedCourseId);
       const files = await getCourseFiles(selectedCourseId);
-      console.log('获取到的文件:', files);
+      // console.log('获取到的文件:', files);
       setFileList(files || []);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '获取文件列表失败';
