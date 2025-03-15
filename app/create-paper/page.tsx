@@ -16,7 +16,6 @@ import { IconAbc, IconInputSearch, IconInputSpark } from "@tabler/icons-react";
 import { useForm } from "react-hook-form";
 
 interface CreatePaperForm {
-  title: string;
   mcqQuestionsCount: number;
   shortAnsQuestionsCount: number;
 }
@@ -28,7 +27,6 @@ export default function CreatePaper() {
     formState: { errors },
   } = useForm<CreatePaperForm>({
     defaultValues: {
-      title: "",
       mcqQuestionsCount: 10,
       shortAnsQuestionsCount: 2,
     },
@@ -69,21 +67,6 @@ export default function CreatePaper() {
         </Heading>
 
         <form onSubmit={handleSubmit(onSubmit)}>
-          <Field.Root mt={4}>
-            <Field.Label>Enter Paper Title</Field.Label>
-            <Input
-              {...register("title", { required: "Title is required" })}
-              placeholder="Enter Title"
-            />
-            {errors.title && (
-              <Text color="red.500" fontSize="sm">
-                {errors.title.message}
-              </Text>
-            )}
-          </Field.Root>
-
-          <Separator my={4} />
-
           <Text mt={3}>How many questions would you like to have?</Text>
 
           <Grid templateColumns="repeat(2, 1fr)" gap={4}>
