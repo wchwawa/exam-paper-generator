@@ -13,8 +13,32 @@ import {
 import { Input } from "@chakra-ui/react";
 import { Separator } from "@chakra-ui/react";
 import { IconAbc, IconInputSearch, IconInputSpark } from "@tabler/icons-react";
+import { useForm } from "react-hook-form";
+
+interface CreatePaperForm {
+  title: string;
+  mcqQuestionsCount: number;
+  shortAnsQuestionsCount: number;
+}
 
 export default function CreatePaper() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<CreatePaperForm>({
+    defaultValues: {
+      title: "",
+      mcqQuestionsCount: 10,
+      shortAnsQuestionsCount: 2,
+    },
+  });
+
+  const onSubmit = (data: CreatePaperForm) => {
+    console.log(data);
+    // Handle form submission here
+  };
+
   return (
     <Box
       bg="gray.100"
@@ -44,86 +68,118 @@ export default function CreatePaper() {
           Create New Paper
         </Heading>
 
-        <Field.Root mt={4}>
-          <Field.Label>Enter Paper Title</Field.Label>
-          <Input placeholder="Enter Title" />
-        </Field.Root>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Field.Root mt={4}>
+            <Field.Label>Enter Paper Title</Field.Label>
+            <Input
+              {...register("title", { required: "Title is required" })}
+              placeholder="Enter Title"
+            />
+            {errors.title && (
+              <Text color="red.500" fontSize="sm">
+                {errors.title.message}
+              </Text>
+            )}
+          </Field.Root>
 
-        <Separator my={4} />
+          <Separator my={4} />
 
-        <Text mt={3}>How many questions would you like to have?</Text>
+          <Text mt={3}>How many questions would you like to have?</Text>
 
-        <Grid templateColumns="repeat(2, 1fr)" gap={4}>
-          <Flex
-            rounded="md"
-            mt={2}
-            gap={2}
-            alignItems="top"
-            border="1px solid"
-            px={2}
-            py={2}
-            borderColor="gray.300"
-          >
+          <Grid templateColumns="repeat(2, 1fr)" gap={4}>
             <Flex
-              justifyContent="center"
-              alignItems="center"
               rounded="md"
-              bg="gray.100"
-              h="48px"
-              w={"48px"}
+              mt={2}
+              gap={2}
+              alignItems="top"
+              border="1px solid"
+              px={2}
+              py={2}
+              borderColor="gray.300"
             >
-              <IconAbc />
+              <Flex
+                justifyContent="center"
+                alignItems="center"
+                rounded="md"
+                bg="gray.100"
+                h="48px"
+                w={"48px"}
+              >
+                <IconAbc />
+              </Flex>
+              <Box>
+                <Text fontWeight="medium">MCQ Questions</Text>
+                <Field.Root>
+                  <Input
+                    size="sm"
+                    type="number"
+                    mt={1}
+                    placeholder="Enter Number"
+                    {...register("mcqQuestionsCount", {
+                      required: "MCQ questions count is required",
+                      min: {
+                        value: 0,
+                        message: "Cannot be negative",
+                      },
+                    })}
+                  />
+                  {errors.mcqQuestionsCount && (
+                    <Text color="red.500" fontSize="sm">
+                      {errors.mcqQuestionsCount.message}
+                    </Text>
+                  )}
+                </Field.Root>
+              </Box>
             </Flex>
-            <Box>
-              <Text fontWeight="medium">MCQ Questions</Text>
-              <Field.Root>
+            <Flex
+              rounded="md"
+              mt={2}
+              gap={2}
+              alignItems="top"
+              border="1px solid"
+              px={2}
+              py={2}
+              borderColor="gray.300"
+            >
+              <Flex
+                justifyContent="center"
+                alignItems="center"
+                rounded="md"
+                bg="gray.100"
+                h="48px"
+                w={"48px"}
+              >
+                <IconInputSpark />
+              </Flex>
+              <Box>
+                <Text fontWeight="medium">Short Answer Questions</Text>
                 <Input
                   size="sm"
-                  defaultValue={0}
                   type="number"
                   mt={1}
                   placeholder="Enter Number"
+                  {...register("shortAnsQuestionsCount", {
+                    required: "Short answer questions count is required",
+                    min: {
+                      value: 0,
+                      message: "Cannot be negative",
+                    },
+                  })}
                 />
-              </Field.Root>
-            </Box>
-          </Flex>
-          <Flex
-            rounded="md"
-            mt={2}
-            gap={2}
-            alignItems="top"
-            border="1px solid"
-            px={2}
-            py={2}
-            borderColor="gray.300"
-          >
-            <Flex
-              justifyContent="center"
-              alignItems="center"
-              rounded="md"
-              bg="gray.100"
-              h="48px"
-              w={"48px"}
-            >
-              <IconInputSpark />
+                {errors.shortAnsQuestionsCount && (
+                  <Text color="red.500" fontSize="sm">
+                    {errors.shortAnsQuestionsCount.message}
+                  </Text>
+                )}
+              </Box>
             </Flex>
-            <Box>
-              <Text fontWeight="medium">Short Answer Questions</Text>
-              <Input
-                size="sm"
-                defaultValue={0}
-                type="number"
-                mt={1}
-                placeholder="Enter Number"
-              />
-            </Box>
-          </Flex>
-        </Grid>
-        <div className="w-full flex justify-end">
-          <Button mt={4} colorScheme="blue">
-            Start Generating
-          </Button>
-        </div>
+          </Grid>
+          <div className="w-full flex justify-end">
+            <Button mt={4} colorScheme="blue" type="submit">
+              Start Generating
+            </Button>
+          </div>
+        </form>
       </Box>
     </Box>
   );
