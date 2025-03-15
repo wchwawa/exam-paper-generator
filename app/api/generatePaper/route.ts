@@ -30,23 +30,23 @@ export async function POST(request: NextRequest) {
       });
     }
     
-    // 调用agent_call生成试卷
     const generatedPaper = await agent_call(results);
     
-    // 尝试解析JSON结果
+
     let paperContent;
     try {
       paperContent = JSON.parse(generatedPaper);
     } catch (e) {
       paperContent = generatedPaper;
     }
+    const examPaper = JSON.parse(paperContent.trim().replace(/^```json\n/, '').replace(/\n```$/, ''));
+    console.log(examPaper);
     
     return NextResponse.json({
       success: true,
       message: `Successfully processed ${results.length} PDF files and generated exam paper`,
       data: {
-        processedFiles: results,
-        examPaper: paperContent
+        examPaper: examPaper
       }
     });
   } catch (error) {
