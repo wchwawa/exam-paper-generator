@@ -8,24 +8,22 @@ from IPython.display import Image, display
 import os, getpass
 from langchain_openai import ChatOpenAI
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 import PyPDF2  # 添加PDF解析库
+from langgraph.prebuilt import create_react_agent
+from langchain.tools import tool
+from tavily import TavilyClient
 
-# 加载.env文件中的环境变量
+# 尝试查找并加载.env文件
+# 加载环境变量
 load_dotenv()
 
-# 检查是否成功加载了API密钥
-openai_api_key = os.environ.get("OPENAI_API_KEY")
-langchain_key = os.getenv("LANGCHAIN_API_KEY")
-
-# 如果没有从.env文件加载到，可以手动设置
-
-os.environ["LANGCHAIN_TRACING_V2"] = "true"
-os.environ["LANGCHAIN_PROJECT"] = "exam_generator"
+# 初始化OpenAI客户端
 llm = ChatOpenAI(model="gpt-4", temperature=0)
-# 如需在 Notebook / REPL 中看流程图，请打开下面的 import
-# from IPython.display import Image, display
 
+# 初始化Tavily客户端
+tavily_api_key = os.environ.get("TAVILY_API_KEY")
+tavily = TavilyClient(api_key=tavily_api_key)
 
 ###############################################################################
 # 2.1) 解析输入 JSON 的函数
@@ -133,6 +131,7 @@ class QuestionOutputState(TypedDict):
     question: str
     answer: str
     q_type: Literal["multiple_choice", "essay"]
+    learning_link: str  # 添加学习链接字段
 
 class WeeklyState(TypedDict):
     """
@@ -171,14 +170,18 @@ class ManagerState(TypedDict):
     weekly_states: Annotated[List[WeeklyState], operator.add]
     testPaper: Dict = {}  # 可选，用于存储最终结果
 
+
+
+###############################################################################
+# building the graph
+###############################################################################
 def supervisor_assign_questions(supervisor_state: SupervisorState) -> List[WeeklyState]:
-    """
-    一次性为 12 周分配题目，返回 12 个 WeeklyState
-    """
+
     # 假装做一次 LLM 调用
     mcq_total = supervisor_state["statistics"]["total_multiple_choice"]
     essay_total = supervisor_state["statistics"]["total_essay"]
     weekly_states: List[WeeklyState] = []
+    #need recreate the prompt
     prompt = f"""
     You are a teacher responsible for assigning the number of questions to each of 12 weeks.
     You are given the following information:
@@ -225,9 +228,28 @@ def supervisor_assign_questions(supervisor_state: SupervisorState) -> List[Weekl
         response_content = str(questions_distribution_raw)
         
     try:
-        response_json = json.loads(response_content)
-    except json.JSONDecodeError:
+        # 提取JSON部分
+        import re
+        json_match = re.search(r'```json\n(.*?)\n```', response_content, re.DOTALL)
+        if json_match:
+            json_str = json_match.group(1)
+            response_json = json.loads(json_str)
+        else:
+            # 尝试直接解析
+            response_json = json.loads(response_content)
+    except json.JSONDecodeError as e:
+        print(f"JSON解析错误: {e}")
+        # 如果解析失败，创建一个默认分配
         response_json = {}
+        total_weeks = supervisor_state["total_weeks"]
+        for i in range(1, total_weeks + 1):
+            response_json[f"week{i}"] = {
+                "topics": supervisor_state["weekly_topics"][i-1],
+                "assigned_questions": {
+                    "multiple_choice": mcq_total // total_weeks,
+                    "essay": essay_total // total_weeks
+                }
+            }
     
     total_weeks = supervisor_state["total_weeks"]
 
@@ -241,15 +263,28 @@ def supervisor_assign_questions(supervisor_state: SupervisorState) -> List[Weekl
             # 如果 LLM 不给 topics，就 fallback 用原始 input_json 里的
             topics = info.get("topics", supervisor_state["weekly_topics"][i-1])
             assigned_raw = info.get("assigned_questions", {})
+            
+            # 确保分配了题目数量
+            mcq = assigned_raw.get("multiple_choice", mcq_total // total_weeks)
+            essay = assigned_raw.get("essay", essay_total // total_weeks)
+            
+            # 验证题目数量大于0
+            if mcq <= 0:
+                mcq = max(1, mcq_total // total_weeks)
+            if essay <= 0:
+                essay = max(1, essay_total // total_weeks)
+                
             assigned = {
-                "multiple_choice": assigned_raw.get("multiple_choice", 0),
-                "essay": assigned_raw.get("essay", 0),
+                "multiple_choice": mcq,
+                "essay": essay
             }
         else:
             # fallback：如果 LLM 没给这周，均分
+            mcq = max(1, mcq_total // total_weeks)
+            essay = max(1, essay_total // total_weeks)
             assigned = {
-                "multiple_choice": mcq_total // total_weeks,
-                "essay": essay_total // total_weeks
+                "multiple_choice": mcq,
+                "essay": essay
             }
             topics = supervisor_state["weekly_topics"][i-1]
         
@@ -263,19 +298,137 @@ def supervisor_assign_questions(supervisor_state: SupervisorState) -> List[Weekl
     return weekly_states
 
 
+# 定义生成试题工具
+@tool
+def generate_exam_questions(week_num: int, topics: list, mcq_count: int, essay_count: int, content: str) -> str:
+    """
+    根据周次、主题和内容生成试卷题目
+    
+    Args:
+        week_num: 周次
+        topics: 主题列表
+        mcq_count: 选择题数量
+        essay_count: 问答题数量
+        content: 周内容
+        
+    Returns:
+        JSON格式的题目字符串
+    """
+    prompt=f"""生成第{week_num}周的试题。
+        
+        主题: {', '.join(topics)}
+        
+        内容:
+        {content[:3000]}
+        
+        请生成{mcq_count}道选择题和{essay_count}道问答题。
+        
+        以JSON格式返回:
+        {{
+            "multiple_choice": [
+                {{
+                    "question": "问题内容",
+                    "options": ["A. 选项1", "B. 选项2", "C. 选项3", "D. 选项4"],
+                    "answer": "A",
+                    "explanation": "解析说明"
+                }}
+            ],
+            "essay": [
+                {{
+                    "question": "问题内容",
+                    "answer": "参考答案"
+                }}
+            ]
+        }}
+        """
+    response = llm.invoke(
+        prompt
+    )
+    return response.content
+@tool
+def check_questions_quality(questions_json: str, week_num: int, topics: list, mcq_count: int, essay_count: int) -> str:
+    """
+    检查生成的题目质量并提供修改建议
+    
+    Args:
+        questions_json: JSON格式的题目字符串
+        week_num: 周次
+        topics: 主题列表
+        mcq_count: 期望的选择题数量
+        essay_count: 期望的问答题数量
+        
+    Returns:
+        检查结果和修改建议
+    """
+    try:
+        questions = json.loads(questions_json)
+        
+        response = llm.invoke(
+            f"""检查第{week_num}周的试题质量。
+            
+            主题: {', '.join(topics)}
+            
+            题目:
+            {questions_json}
+            
+            请检查:
+            1. 题目是否与主题相关
+            2. 选择题是否有明确的正确答案
+            3. 问答题是否有清晰的参考答案
+            4. 题目难度是否合适
+            5. 选择题数量是否为{mcq_count}道
+            6. 问答题数量是否为{essay_count}道
+            
+            如果有问题，请指出并提供修改建议。如果没有问题，请确认质量良好。
+            """
+        )
+        return response.content
+    except json.JSONDecodeError:
+        return "题目JSON格式有误，请重新生成"
+
+# 添加Tavily搜索工具
+@tool
+def find_learning_resources(question: str, topic: str) -> str:
+    """
+    查找与题目相关的YouTube学习资源
+    
+    Args:
+        question: 题目内容
+        topic: 题目主题
+        
+    Returns:
+        JSON格式的YouTube链接和描述
+    """
+    search_query = f"YouTube tutorial {topic} {question}"
+    try:
+        search_result = tavily.search(
+            query=search_query,
+            search_depth="advanced",
+            include_domains=["youtube.com"],
+            max_results=1
+        )
+        
+        if search_result and "results" in search_result and len(search_result["results"]) > 0:
+            link = search_result["results"][0].get("url", "")
+            title = search_result["results"][0].get("title", "")
+            return json.dumps({"link": link, "title": title})
+        else:
+            return json.dumps({"link": "", "title": "未找到相关资源"})
+    except Exception as e:
+        print(f"搜索资源时出错: {e}")
+        return json.dumps({"link": "", "title": "搜索过程中出错"})
+
 def weekly_generate_questions(weekly_state: WeeklyState) -> WeeklyState:
     """
-    生成本周的题目，根据 assigned_questions 的要求生成选择题和问答题
+    使用ReAct代理生成本周的题目
     """
-    # 获取当前周号和主题
+    # 获取基本信息
     week_num = weekly_state["week_number"]
     topics = weekly_state["topics"]
-    
-    # 获取要生成的题目数量
     mcq_count = weekly_state["assigned_questions"]["multiple_choice"]
     essay_count = weekly_state["assigned_questions"]["essay"]
     
-    # 从supervisor_state中获取原始内容
+    # 获取周内容
     week_content = ""
     if "supervisor_state" in weekly_state:
         input_json = weekly_state.get("supervisor_state", {}).get("input_json", {})
@@ -283,51 +436,60 @@ def weekly_generate_questions(weekly_state: WeeklyState) -> WeeklyState:
         if week_key in input_json:
             week_content = input_json[week_key].get("content", "")
     
-    # 构建结构化输出的提示，要求LLM以JSON格式返回
-    prompt = f"""
-    作为一位教育专家，请为第{week_num}周的内容生成题目。
+    # 创建ReAct代理 - 移除查找学习资源工具
+    tools = [generate_exam_questions, check_questions_quality]  # 移除find_learning_resources
+    react_agent = create_react_agent(model=llm, tools=tools)
     
-    本周主题包括: {', '.join(topics)}
+    # 准备系统提示和用户指令
+    system_prompt = f"""你是一位专业的教育专家，负责为第{week_num}周的内容生成高质量试题。
     
-    以下是本周的讲义内容:
-    {week_content[:3000]}  # 限制内容长度以避免超出token限制
-    
-    请生成：
-    - {mcq_count}道选择题
-    - {essay_count}道问答题
-    
-    请以下面的JSON格式返回结果：
-    {{
-        "multiple_choice": [
-            {{
-                "question": "问题内容",
-                "options": ["A. 选项1", "B. 选项2", "C. 选项3", "D. 选项4"],
-                "answer": "正确选项（如A）",
-                "explanation": "解析说明"
-            }}
-            // 更多选择题...
-        ],
-        "essay": [
-            {{
-                "question": "问题内容",
-                "answer": "参考答案"
-            }}
-            // 更多问答题..
-        ]
-    }}
+    请按照以下步骤操作:
+    1. 使用generate_exam_questions工具生成初始题目
+    2. 使用check_questions_quality工具检查题目质量
+    3. 如有需要，重新生成或修改题目
+    4. 最终输出包含题目和学习资源链接的JSON格式数据
     
     确保所有题目都与本周主题相关，并提供完整的答案和解析。
-    基于提供的讲义内容出题，不要编造不相关的内容。
     """
     
-    # 调用OpenAI生成题目
-    response = llm.invoke(prompt)
+    user_instruction = f"""请为第{week_num}周生成试题：
+    - 主题: {', '.join(topics)}
+    - 选择题数量: {mcq_count}
+    - 问答题数量: {essay_count}
+    - 周内容: {week_content[:500]}...
+    """
     
-    # 尝试解析JSON响应
+    # 准备输入
+    inputs = {
+        "messages": [
+            ("system", system_prompt),
+            ("user", user_instruction)
+        ]
+    }
+    
+    # 执行代理
+    result = react_agent.invoke(inputs)
+    
+    # 从结果中提取最终JSON
+    final_output = ""
+    for message in result.get("messages", []):
+        if isinstance(message, tuple) and message[0] == "ai":
+            final_output = message[1]
+        elif hasattr(message, "content"):
+            final_output = message.content
+    
+    # 处理选择题和问答题时，先不添加学习资源链接
     try:
-        # 修复：正确处理AIMessage对象
-        response_content = response.content if hasattr(response, 'content') else str(response)
-        questions_data = json.loads(response_content)
+        # 尝试从输出中提取JSON部分
+        import re
+        json_match = re.search(r'```json\n(.*?)\n```', final_output, re.DOTALL)
+        if json_match:
+            questions_json = json_match.group(1)
+        else:
+            # 尝试直接解析
+            questions_json = final_output
+            
+        questions_data = json.loads(questions_json)
         
         # 处理选择题
         for i, mcq in enumerate(questions_data.get("multiple_choice", [])):
@@ -336,7 +498,8 @@ def weekly_generate_questions(weekly_state: WeeklyState) -> WeeklyState:
                 "options": mcq.get("options", []),
                 "answer": mcq.get("answer", ""),
                 "explanation": mcq.get("explanation", ""),
-                "q_type": "multiple_choice"
+                "q_type": "multiple_choice",
+                "learning_link": ""  # 空字符串，稍后填充
             })
         
         # 处理问答题
@@ -344,27 +507,30 @@ def weekly_generate_questions(weekly_state: WeeklyState) -> WeeklyState:
             weekly_state["generated_questions"].append({
                 "question": f"[Week{week_num}] 问答题 #{i+1}: {essay.get('question', '')}",
                 "answer": essay.get("answer", ""),
-                "q_type": "essay"
+                "q_type": "essay",
+                "learning_link": ""  # 空字符串，稍后填充
             })
-    except json.JSONDecodeError:
-        # 如果JSON解析失败，使用备用方案
-        print(f"第{week_num}周题目生成的JSON解析失败，使用备用方案")
+    except Exception as e:
+        # 如果出现任何异常，使用备用方案
+        print(f"第{week_num}周题目处理失败: {e}，使用备用方案")
         
-        # 备用方案：创建简单的占位题目
+        # 备用方案
         for i in range(mcq_count):
             weekly_state["generated_questions"].append({
                 "question": f"[Week{week_num}] 选择题 #{i+1}: 关于{'/'.join(topics)}的问题",
                 "options": ["A. 选项1", "B. 选项2", "C. 选项3", "D. 选项4"],
                 "answer": "A",
                 "explanation": "解析说明",
-                "q_type": "multiple_choice"
+                "q_type": "multiple_choice",
+                "learning_link": ""
             })
         
         for i in range(essay_count):
             weekly_state["generated_questions"].append({
                 "question": f"[Week{week_num}] 问答题 #{i+1}: 请讨论{'/'.join(topics)}的重要性",
                 "answer": f"关于{'/'.join(topics)}的参考答案",
-                "q_type": "essay"
+                "q_type": "essay",
+                "learning_link": ""
             })
     
     return weekly_state
@@ -384,10 +550,8 @@ def extract_text_from_pdf(pdf_path):
 
 def manager_collect_questions(manager_state: ManagerState) -> ManagerState:
     """
-    汇总所有周的结果，返回一个符合你所需结构的 testPaper
-    并将其写到 JSON 文件或直接在 Python 层面返回给前端
+    汇总所有周的结果，并为每个题目查找学习资源
     """
-
     # 这里假设我们统一设置
     paper_id = "123"
     paper_title = "Test Paper"
@@ -401,16 +565,45 @@ def manager_collect_questions(manager_state: ManagerState) -> ManagerState:
 
     # 为了给 questionId 编号，这里建一个计数器
     question_id_counter = 1
+    
+    # 为每个题目查找学习资源
+    print("正在查找所有题目的学习资源...")
+    all_questions = []
+    for week_state in manager_state["weekly_states"]:
+        all_questions.extend(week_state["generated_questions"])
+    
+    # 为每个题目添加学习资源
+    for q in all_questions:
+        topic = ""
+        if q["q_type"] == "multiple_choice":
+            topic = q["question"].split(": ")[1] if ": " in q["question"] else q["question"]
+        else:
+            topic = q["question"].split(": ")[1] if ": " in q["question"] else q["question"]
+            
+        # 调用Tavily搜索
+        search_query = f"YouTube tutorial {topic}"
+        try:
+            search_result = tavily.search(
+                query=search_query,
+                search_depth="advanced",
+                include_domains=["youtube.com"],
+                max_results=1
+            )
+            
+            if search_result and "results" in search_result and len(search_result["results"]) > 0:
+                q["learning_link"] = search_result["results"][0].get("url", "")
+            else:
+                q["learning_link"] = ""
+        except Exception as e:
+            print(f"搜索资源时出错: {e}")
+            q["learning_link"] = ""
 
     # 遍历所有周的题目，把它们整合到一个大的 question[] 列表
     for week_state in manager_state["weekly_states"]:
         for q in week_state["generated_questions"]:
-
             # 根据 q_type 区分：是 multiple_choice 还是 essay
             if q["q_type"] == "multiple_choice":
                 # 将 MCQ 题型转换到你想要的字段
-                # q["options"] 里一般形如 ["A. Paris", "B. Rome", ...]
-                # 我们需要拆分出 optionId、optionTitle、optionValue、explanation
                 mcq_options = []
                 for opt_str in q.get("options", []):
                     # 假设 opt_str 形如 "A. Paris"
@@ -438,7 +631,8 @@ def manager_collect_questions(manager_state: ManagerState) -> ManagerState:
                     "answer": q["answer"],
                     "userAnswer": "",   # 先留空或默认值
                     "hint": q["explanation"],  # 这里把整个question-level的explanation放在hint上
-                    "mcqOptions": mcq_options
+                    "mcqOptions": mcq_options,
+                    "learningResource": q.get("learning_link", "")  # 添加学习资源链接
                 }
                 testPaper["question"].append(new_question)
                 question_id_counter += 1
@@ -451,6 +645,7 @@ def manager_collect_questions(manager_state: ManagerState) -> ManagerState:
                     "questionType": "short-answer",
                     "userAnswer": "",  # 先留空或默认值
                     "explanation": q["answer"],  # 简答题的答案放在 explanation
+                    "learningResource": q.get("learning_link", "")  # 添加学习资源链接
                 }
                 testPaper["question"].append(new_question)
                 question_id_counter += 1
@@ -462,8 +657,6 @@ def manager_collect_questions(manager_state: ManagerState) -> ManagerState:
     print(json.dumps(testPaper, ensure_ascii=False, indent=2))
 
     # 如果你仍想把 manager_state 往下传递，可以把 testPaper 存在 manager_state 里
-    # 或者在此仅返回 manager_state
-    # 如下，我演示把 testPaper 附加到 manager_state 里：
     manager_state["testPaper"] = testPaper
 
     return manager_state
@@ -514,50 +707,46 @@ builder = StateGraph(ManagerState)
 builder.add_node("supervisor_node", supervisor_node_fn)
 builder.add_node("manager_collect_node", manager_collect_node_fn)
 
-# Week1 ~ Week12
-for i in range(1, 13):
-    builder.add_node(f"week_{i}_node", weekly_node_fn(i))
+# 获取实际周数
+def build_graph_with_weeks(total_weeks=12):
+    # Week1 ~ Week{total_weeks}
+    for i in range(1, total_weeks + 1):
+        builder.add_node(f"week_{i}_node", weekly_node_fn(i))
 
-# 连线：START -> supervisor_node
-builder.add_edge(START, "supervisor_node")
+    # 连线：START -> supervisor_node
+    builder.add_edge(START, "supervisor_node")
 
-# supervisor_node -> week_1_node ... week_12_node (并行)
-for i in range(1, 13):
-    builder.add_edge("supervisor_node", f"week_{i}_node")
+    # supervisor_node -> week_1_node ... week_{total_weeks}_node (并行)
+    for i in range(1, total_weeks + 1):
+        builder.add_edge("supervisor_node", f"week_{i}_node")
 
-# week_1_node..week_12_node -> manager_collect_node
-for i in range(1, 13):
-    builder.add_edge(f"week_{i}_node", "manager_collect_node")
+    # week_1_node..week_{total_weeks}_node -> manager_collect_node
+    for i in range(1, total_weeks + 1):
+        builder.add_edge(f"week_{i}_node", "manager_collect_node")
 
-# manager_collect_node -> END
-builder.add_edge("manager_collect_node", END)
+    # manager_collect_node -> END
+    builder.add_edge("manager_collect_node", END)
 
-# 编译图
-graph = builder.compile()
+    # 编译图
+    return builder.compile()
 
-# 如果你想在 Notebook 中可视化:
-display(Image(graph.get_graph().draw_mermaid_png()))
-
-
-
+# 在主函数中调用
 if __name__ == "__main__":
     # 解析PDF内容
-    pdf_path = "/root/langchain-academy/exam-paper-generator/check/Lecture-3.pdf"
-    pdf_content = extract_text_from_pdf(pdf_path)
     
     # 一个示例输入 JSON
     input_data = {
         "week1": {
-            "lectureTitle": "how to radix conversion",
-            "abstract": "how to radix conversion",
-            "keyPoints": ["1st component", "2nd component", "Signed_integer"],
-            "content": pdf_content,  # 使用从PDF提取的内容
+            "lectureTitle": "电动汽车的环境影响",
+            "abstract": "本周讲座探讨电动汽车的环境效益，包括零尾气排放、噪音污染减少以及对城市空气质量的积极影响。",
+            "keyPoints": ["零尾气排放", "噪音污染减少", "城市空气质量改善"],
+            "content": "Lets examine the merits of electric cars through a structured lens, focusing on their environmental, practical, and technological dimensions. First, consider their environmental impact: electric vehicles (EVs) produce zero tailpipe emissions. Unlike gasoline engines, which release carbon dioxide and particulates—contributing to phenomena like urban smog—EVs operate on battery-powered motors. In a city like Los Angeles, widespread EV adoption could measurably reduce air pollution, offering a practical case study in emissions control. Next, assess their acoustic footprint. EVs are significantly quieter than combustion vehicles, lacking the mechanical roar of pistons and exhausts.",
         },
         "week2": {
-            "lectureTitle": "Test Paper",
-            "abstract": "Abstract",
-            "keyPoints": ["Key Point 1", "Key Point 2", "Key Point 3"],
-            "content": "Content.........",
+            "lectureTitle": "电动汽车的经济性分析",
+            "abstract": "本周讲座分析电动汽车的经济效益，包括运营成本、维护费用以及长期投资回报率。",
+            "keyPoints": ["运营成本分析", "维护费用比较", "长期投资回报"],
+            "content": "Economically, EVs present a compelling argument. Though their purchase price often exceeds that of gasoline cars, operational costs are lower. Electricity trumps gasoline in per-mile expense—think $500 annually for a Tesla Model 3 versus $1,500 for a gas equivalent. Maintenance further tilts the scale: no oil changes or complex transmissions mean savings, with data suggesting $4,600 less over a vehicles life. Now, infrastructure: charging networks are scaling up. By 2025, Teslas Supercharger count exceeds 2,000 globally, yet gaps persist—rural drivers face 'range anxiety' where urbanites dont.",
         },
         # ...
         "week12": {
@@ -569,13 +758,22 @@ if __name__ == "__main__":
     }
 
     # 解析输入 JSON，构造 SupervisorState
-    sup_state = parse_input_json_to_supervisor_state(input_data, total_weeks=12, total_mcq=10, total_essay=3)
-
+    sup_state = parse_input_json_to_supervisor_state(input_data)
+    
+    # 获取实际周数
+    total_weeks = sup_state["total_weeks"]
+    
+    # 构建并编译图
+    graph = build_graph_with_weeks(total_weeks)
+    
+    # 可视化
+    display(Image(graph.get_graph().draw_mermaid_png()))
+    
     # 构造初始 ManagerState
     init_manager_state: ManagerState = {
         "supervisor_state": sup_state,
         "weekly_states": []
     }
 
-    # 注意：CompiledStateGraph 没有 run(...) 方法，直接调用 graph(...) 即可
+    # 执行图
     final_state: ManagerState = graph.invoke(init_manager_state)
