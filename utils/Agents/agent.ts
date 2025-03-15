@@ -7,7 +7,6 @@ import { Document } from "@langchain/core/documents";
 import { tool } from "@langchain/core/tools";
 import dotenv from "dotenv";
 import { z } from "zod";
-import * as tslab from "tslab";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { writeFileSync, appendFileSync, existsSync, mkdirSync } from "fs";
 import path from "path";
