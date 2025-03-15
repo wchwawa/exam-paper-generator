@@ -1,5 +1,6 @@
 "use client";
-import Image from "next/image";
+
+import { Accordion } from "@chakra-ui/react";
 import { useState, useRef, useCallback } from "react";
 import { IconFileSmile, IconFileUpload, IconX } from "@tabler/icons-react";
 import {
