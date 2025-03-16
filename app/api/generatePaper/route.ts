@@ -9,7 +9,8 @@ import { callAgentCluster } from "@/Agents/advanceAgents/agentCluster";
  */
 export async function POST(request: NextRequest) {
   try {
-    const { folderId, totalMcq, totalEssay } = await request.json();
+    const { folderId, mcqAnswerNumber, shortAnswerNumber } =
+      await request.json();
 
     if (!folderId) {
       return NextResponse.json(
@@ -33,8 +34,8 @@ export async function POST(request: NextRequest) {
     const generatedPaper = await callAgentCluster(
       pdfContent,
       totalWeeks,
-      totalMcq,
-      totalEssay
+      mcqAnswerNumber,
+      shortAnswerNumber
     );
 
     return NextResponse.json({
