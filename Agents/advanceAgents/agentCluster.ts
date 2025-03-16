@@ -178,7 +178,7 @@ interface QuestionOutputState {
   q_type: QuestionType;
   learning_link: string;
   options?: any[];  // 选择题选项
-  hint?: string; // 解释
+  hint: string; // 解释
 }
 
 // 统计信息类型
@@ -579,6 +579,7 @@ async function weeklyGenerateQuestions(weekly_state: WeeklyState): Promise<Weekl
         weekly_state.generated_questions.push({
           question: `[Week${week_num}] essay question #${i+1}: ${essay.question || ''}`,
           answer: essay.answer || "",
+          hint: essay.hint || "",
           q_type: "essay",
           learning_link: ""  // 空字符串，稍后填充
         });
@@ -604,6 +605,7 @@ async function weeklyGenerateQuestions(weekly_state: WeeklyState): Promise<Weekl
       weekly_state.generated_questions.push({
         question: `[Week${week_num}] essay question #${i+1}: please discuss the importance of ${topics.join('/')}`,
         answer: `reference answer about ${topics.join('/')}`,
+        hint: "none",
         q_type: "essay",
         learning_link: ""
       });
@@ -658,28 +660,49 @@ async function managerCollectQuestions(manager_state: typeof ManagerStateAnnotat
         // 将 MCQ 题型转换到你想要的字段
         const mcq_options = [];
         for (const opt_str of q.options || []) {
-          // 假设 opt_str 形如 "A. Paris"
-          // 做一个简单 split
-          console.log("opt_str====================================== ", opt_str);
-          const optionMatch = opt_str.option.match(/^([A-D])\.?\s*(.*)/);
-          if (optionMatch) {
-            const opt_id_part = optionMatch[0];  // "A"
-            const opt_title_part = optionMatch[1];
-            mcq_options.push({
-              optionId: opt_id_part,
-              optionTitle: opt_title_part,
-              optionValue: opt_title_part,
-              explanation: ""  // 如果选项级别无额外解释，就留空
-            });
-          } else {
-            // 如果分割不符合预期，就给个默认
-            mcq_options.push({
-              optionId: "X",
-              optionTitle: opt_str,
-              optionValue: opt_str,
-              explanation: ""
-            });
+          // 记录选项处理过程
+          logger.debug(`处理选项: ${JSON.stringify(opt_str)}`);
+          
+          // 处理不同格式的选项
+          let optionId = "X";
+          let optionTitle = "";
+          let optionExplanation = "";
+          
+          // 如果选项是对象格式 {option: "A. xxx", explanation: "xxx"}
+          if (typeof opt_str === 'object' && opt_str !== null && 'option' in opt_str) {
+            const optText = opt_str.option;
+            optionExplanation = opt_str.explanation || "";
+            
+            // 从选项文本中提取ID和标题
+            const match = optText.match(/^([A-D])\.?\s*(.*)/);
+            if (match) {
+              optionId = match[1];  // "A"
+              optionTitle = match[2];  // "选项内容"
+            } else {
+              optionTitle = optText;
+            }
+          } 
+          // 如果选项是字符串格式 "A. xxx"
+          else if (typeof opt_str === 'string') {
+            const match = opt_str.match(/^([A-D])\.?\s*(.*)/);
+            if (match) {
+              optionId = match[1];  // "A"
+              optionTitle = match[2];  // "选项内容"
+            } else {
+              optionTitle = opt_str;
+            }
           }
+          // 其他情况，直接使用原始值
+          else {
+            optionTitle = String(opt_str);
+          }
+          
+          mcq_options.push({
+            optionId: optionId,
+            optionTitle: optionTitle,
+            optionValue: optionTitle,
+            explanation: optionExplanation
+          });
         }
 
         const new_question = {
