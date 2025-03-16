@@ -28,7 +28,8 @@ export async function POST(request: NextRequest) {
       });
     }
     const totalWeeks = Object.keys(pdfContent).length;
-    // const generatedPaper = await agent_call(pdfContent);
+    // console.log(pdfContent);
+  
     const generatedPaper = await callAgentCluster(pdfContent, totalWeeks, totalMcq, totalEssay);
     
     return NextResponse.json({
