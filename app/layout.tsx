@@ -24,16 +24,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      style={{
-        colorScheme: "light",
-      }}
-      className="light"
-      lang="en"
-    >
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body className="antialiased">
         <NuqsAdapter>
           <Provider>{children}</Provider>
         </NuqsAdapter>
