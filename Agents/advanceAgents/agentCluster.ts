@@ -21,7 +21,7 @@ import {
 import { 
   DynamicStructuredTool 
 } from "@langchain/core/tools";
-import { generateExamQuestions, checkQuestionsQuality } from "@/Agents/advanceAgents/tools";
+import { generateExamQuestions, checkQuestionsQuality, responseFormatTool } from "@/Agents/advanceAgents/tools";
 import { v4 as uuidv4 } from 'uuid';
 import { writeFileSync, appendFileSync, existsSync, mkdirSync } from "fs";
 import path from "path";
@@ -365,7 +365,9 @@ async function supervisorAssignQuestions(supervisor_state: SupervisorState): Pro
   `;
   
   // 使用 LLM 生成分配
-  const miniLLM = new ChatOpenAI({ model: "gpt-4o-mini", temperature: 0 });
+  const miniLLM = new ChatOpenAI({ model: "gpt-4o-mini", temperature: 0 }).bind({
+    response_format: { type: "json_object" }
+  });
   logger.info("调用LLM生成问题分配");
   const questions_distribution_raw = await miniLLM.invoke(prompt);
   
@@ -486,7 +488,7 @@ async function weeklyGenerateQuestions(weekly_state: WeeklyState): Promise<Weekl
   }
   
   // 创建 ReAct 代理
-  const tools = [generateExamQuestions, checkQuestionsQuality];
+  const tools = [generateExamQuestions, checkQuestionsQuality, responseFormatTool];
   const toolNode = new ToolNode(tools);
   
   logger.info("创建ReAct代理");
@@ -535,12 +537,14 @@ async function weeklyGenerateQuestions(weekly_state: WeeklyState): Promise<Weekl
   const messages = result.messages;
   if (messages && messages.length > 0) {
     const lastMessage = messages[messages.length - 1];
+    console.log("====================*******lastMessage****** ============================= ", lastMessage.content);
     if (typeof lastMessage.content === 'string') {
       final_output = lastMessage.content;
     } else {
       final_output = JSON.stringify(lastMessage.content);
     }
   }
+
   
   logger.debug({ final_output });
   
@@ -564,7 +568,7 @@ async function weeklyGenerateQuestions(weekly_state: WeeklyState): Promise<Weekl
           question: `[Week${week_num}] multiple choice question #${i+1}: ${mcq.question || ''}`,
           options: mcq.options || [],
           answer: mcq.answer || "",
-          hint: mcq.explanation || "",
+          hint: mcq.hint || "",
           q_type: "multiple_choice",
           learning_link: ""  // 空字符串，稍后填充
         });

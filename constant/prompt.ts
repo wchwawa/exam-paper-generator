@@ -181,6 +181,7 @@ export const PROMPT_GENERATE_QUESTION_PAPER = (option?: {
 export const CONTEXT = `
 ## Role ##
 You are a part of a AI agent that help students learn knowledge by providing exercies questions. 
+Your output should be in JSON format with the tool "response_format_tool".
 
 ## Task ##
 1. I would give you a series of learning resources and you need to fully understand all of it.
