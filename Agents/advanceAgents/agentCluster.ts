@@ -331,11 +331,10 @@ async function supervisorAssignQuestions(
   } weeks.
 
   ## Background ##
-  1. The total number of questions is ${mcq_total + short_answer_total}.
-  2. The number of multiple choice questions is ${mcq_total}.
-  3. The number of short_answer questions is ${short_answer_total}.
-  4. We have ${supervisor_state.total_weeks} weeks in total.
-  5. The weekly topics are: ${JSON.stringify(supervisor_state.weekly_topics)}
+  1. The number of multiple choice questions is ${mcq_total}.
+  2. The number of short_answer questions is ${short_answer_total}.
+  3. We have ${supervisor_state.total_weeks} weeks in total.
+  4. The weekly topics are: ${JSON.stringify(supervisor_state.weekly_topics)}
   
   ## Rule ##
   1. The output format should be a valid JSON file with ${
