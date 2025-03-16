@@ -8,6 +8,7 @@ import { DynamicStructuredTool } from "@langchain/core/tools";
 import {
   generateExamQuestions,
   checkQuestionsQuality,
+  responseFormatTool,
 } from "@/Agents/advanceAgents/tools";
 import { v4 as uuidv4 } from "uuid";
 import { writeFileSync, appendFileSync, existsSync, mkdirSync } from "fs";
@@ -369,7 +370,11 @@ async function supervisorAssignQuestions(
   `;
 
   // 使用 LLM 生成分配
-  const miniLLM = new ChatOpenAI({ model: "gpt-4o-mini", temperature: 0 });
+  const miniLLM = new ChatOpenAI({ model: "gpt-4o-mini", temperature: 0 }).bind(
+    {
+      response_format: { type: "json_object" },
+    }
+  );
   logger.info("调用LLM生成问题分配");
   const questions_distribution_raw = await miniLLM.invoke(prompt);
 
@@ -493,7 +498,11 @@ async function weeklyGenerateQuestions(
   }
 
   // 创建 ReAct 代理
-  const tools = [generateExamQuestions, checkQuestionsQuality];
+  const tools = [
+    generateExamQuestions,
+    checkQuestionsQuality,
+    responseFormatTool,
+  ];
   const toolNode = new ToolNode(tools);
 
   logger.info("创建ReAct代理");
@@ -504,17 +513,12 @@ async function weeklyGenerateQuestions(
 
   // 准备系统提示和用户指令
   const system_prompt = `
-  ## Role ##
-  You are a professional education expert, responsible for generating high-quality questions for the content of week ${week_num}.
-
   ## Task ##
   1. Use the generate_exam_questions tool to generate initial questions
   2. Use the check_questions_quality tool to check the quality of the questions
   3. If needed, regenerate or modify the questions
   4. Finally, output the questions and learning resource links in JSON format
-  
-  ## Rule ##
-  All questions must be related to the week's topic and provide complete answers and explanations.
+
   `;
 
   const user_instruction = `
@@ -523,6 +527,9 @@ async function weeklyGenerateQuestions(
   - Multiple choice questions count: ${mcq_count}
   - Essay questions count: ${essay_count}
   - Week content: ${week_content.substring(0, 500)}...
+
+  **Important**:
+   Only output the JSON format, DO NOT include any other text.
   `;
 
   // 准备输入
@@ -549,18 +556,15 @@ async function weeklyGenerateQuestions(
     }
   }
 
-  logger.debug({ final_output });
-
   // 处理选择题和问答题
   try {
-    // 尝试从输出中提取 JSON 部分
-    let questions_json = final_output;
-    const json_match = final_output.match(/```json\n([\s\S]*?)\n```/);
-    if (json_match && json_match[1]) {
-      questions_json = json_match[1];
-    }
-
-    const questions_data = JSON.parse(questions_json);
+    const questions_data = JSON.parse(
+      final_output.replace(/^```json\n/, "").replace(/\n```$/, "")
+    );
+    console.log(
+      "====================*******questions_data****** ============================= ",
+      questions_data
+    );
 
     // 处理选择题
     if (Array.isArray(questions_data.multiple_choice)) {

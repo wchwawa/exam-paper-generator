@@ -6,6 +6,8 @@ import agentClient from "../../utils/openai/agentClient";
 
 const llm = agentClient;
 
+
+
 // 定义生成试题工具
 export const generateExamQuestions = new DynamicStructuredTool({
   name: "generate_exam_questions",
@@ -81,8 +83,8 @@ export const generateExamQuestions = new DynamicStructuredTool({
 
     content: ${content}
     `;
-    
     const response = await llm.invoke(prompt);
+    console.log("====================*******react agent response****** ============================= ", response);
     return typeof response.content === 'string' ? response.content : JSON.stringify(response.content);
   }
 });
@@ -128,6 +130,60 @@ export const checkQuestionsQuality = new DynamicStructuredTool({
         `
       );
       
+      return typeof response.content === 'string' ? response.content : JSON.stringify(response.content);
+    } catch (e) {
+      return "title JSON format error, please regenerate";
+    }
+  }
+});
+
+export const responseFormatTool = new DynamicStructuredTool({
+  name: "response_format_tool",
+  description: "Before you return the final response, you need to format the response to the JSON format with this tool",
+  schema: z.object({
+    response: z.string().describe("response")
+  }),
+  func: async ({ response }) => {
+    try {
+      const response = await llm.invoke(`
+           ## Output JSON format ##
+    {
+        "multiple_choice": [
+        {
+            "question": "Question content",
+            "options": [
+            {
+                "option": "A. Option 1",
+                "explanation": "Explanation for option A"
+            },
+            {
+                "option": "B. Option 2",
+                "explanation": "Explanation for option B"
+            },
+            {
+                "option": "C. Option 3",
+                "explanation": "Explanation for option C"
+            },
+            {
+                "option": "D. Option 4",
+                "explanation": "Explanation for option D"
+            }
+            ],
+            "answer": "Correct option (e.g. A)",
+            "hint": "Hint for the question (when user wants to know more about the solution or knowledge points)"
+        }
+        // More multiple choice questions...
+        ],
+        "short-answer": [
+        {
+            "question": "Question content",
+            "answer": "Reference answer",
+            "hint": "Hint for the question (when user wants to know more about the solution or knowledge points)"
+        }
+        // More essay questions...
+        ]
+    }
+      `);
       return typeof response.content === 'string' ? response.content : JSON.stringify(response.content);
     } catch (e) {
       return "title JSON format error, please regenerate";

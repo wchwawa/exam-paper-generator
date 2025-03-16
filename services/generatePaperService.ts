@@ -52,7 +52,7 @@ export async function summarizePdfContent(text: string) {
     }
     
     const parsedJson = JSON.parse(parsed);
-
+    console.log("parsedJson before add content ", parsedJson);
     parsedJson.content = text;
     
     if (parsedJson.lectureTitle) {
