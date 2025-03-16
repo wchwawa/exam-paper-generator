@@ -1,0 +1,370 @@
+{
+  "success": true,
+  "message": "Successfully processed undefined PDF files and generated exam paper",
+  "data": {
+    "generatedPaper": {
+      "paperId": "90987766-5f38-427a-8af2-a1bb8d4bf031",
+      "paperTitle": "Test Paper",
+      "question": [
+        {
+          "questionId": "1",
+          "questionTitle": "[Week1] multiple choice question #1: about HTML/DOM/JavaScript",
+          "questionType": "mcq",
+          "answer": "A",
+          "userAnswer": "",
+          "hint": "none",
+          "mcqOptions": [
+            {
+              "optionId": "A",
+              "optionTitle": "option1",
+              "optionValue": "option1",
+              "explanation": ""
+            },
+            {
+              "optionId": "B",
+              "optionTitle": "option2",
+              "optionValue": "option2",
+              "explanation": ""
+            },
+            {
+              "optionId": "C",
+              "optionTitle": "option3",
+              "optionValue": "option3",
+              "explanation": ""
+            },
+            {
+              "optionId": "D",
+              "optionTitle": "option4",
+              "optionValue": "option4",
+              "explanation": ""
+            }
+          ],
+          "learningResource": "https://www.youtube.com/results?search_query=%5BWeek1%5D%20multiple%20choice%20question%20%231%3A%20about%20HTML%2FDOM%2FJavaScript"
+        },
+        {
+          "questionId": "2",
+          "questionTitle": "[Week1] multiple choice question #2: about HTML/DOM/JavaScript",
+          "questionType": "mcq",
+          "answer": "A",
+          "userAnswer": "",
+          "hint": "none",
+          "mcqOptions": [
+            {
+              "optionId": "A",
+              "optionTitle": "option1",
+              "optionValue": "option1",
+              "explanation": ""
+            },
+            {
+              "optionId": "B",
+              "optionTitle": "option2",
+              "optionValue": "option2",
+              "explanation": ""
+            },
+            {
+              "optionId": "C",
+              "optionTitle": "option3",
+              "optionValue": "option3",
+              "explanation": ""
+            },
+            {
+              "optionId": "D",
+              "optionTitle": "option4",
+              "optionValue": "option4",
+              "explanation": ""
+            }
+          ],
+          "learningResource": "https://www.youtube.com/results?search_query=%5BWeek1%5D%20multiple%20choice%20question%20%232%3A%20about%20HTML%2FDOM%2FJavaScript"
+        },
+        {
+          "questionId": "3",
+          "questionTitle": "[Week1] multiple choice question #3: about HTML/DOM/JavaScript",
+          "questionType": "mcq",
+          "answer": "A",
+          "userAnswer": "",
+          "hint": "none",
+          "mcqOptions": [
+            {
+              "optionId": "A",
+              "optionTitle": "option1",
+              "optionValue": "option1",
+              "explanation": ""
+            },
+            {
+              "optionId": "B",
+              "optionTitle": "option2",
+              "optionValue": "option2",
+              "explanation": ""
+            },
+            {
+              "optionId": "C",
+              "optionTitle": "option3",
+              "optionValue": "option3",
+              "explanation": ""
+            },
+            {
+              "optionId": "D",
+              "optionTitle": "option4",
+              "optionValue": "option4",
+              "explanation": ""
+            }
+          ],
+          "learningResource": "https://www.youtube.com/results?search_query=%5BWeek1%5D%20multiple%20choice%20question%20%233%3A%20about%20HTML%2FDOM%2FJavaScript"
+        },
+        {
+          "questionId": "4",
+          "questionTitle": "[Week1] multiple choice question #4: about HTML/DOM/JavaScript",
+          "questionType": "mcq",
+          "answer": "A",
+          "userAnswer": "",
+          "hint": "none",
+          "mcqOptions": [
+            {
+              "optionId": "A",
+              "optionTitle": "option1",
+              "optionValue": "option1",
+              "explanation": ""
+            },
+            {
+              "optionId": "B",
+              "optionTitle": "option2",
+              "optionValue": "option2",
+              "explanation": ""
+            },
+            {
+              "optionId": "C",
+              "optionTitle": "option3",
+              "optionValue": "option3",
+              "explanation": ""
+            },
+            {
+              "optionId": "D",
+              "optionTitle": "option4",
+              "optionValue": "option4",
+              "explanation": ""
+            }
+          ],
+          "learningResource": "https://www.youtube.com/results?search_query=%5BWeek1%5D%20multiple%20choice%20question%20%234%3A%20about%20HTML%2FDOM%2FJavaScript"
+        },
+        {
+          "questionId": "5",
+          "questionTitle": "[Week1] essay question #1: please discuss the importance of HTML/DOM/JavaScript",
+          "questionType": "short-answer",
+          "userAnswer": "",
+          "hint": "reference answer about HTML/DOM/JavaScript",
+          "learningResource": "https://www.youtube.com/results?search_query=%5BWeek1%5D%20essay%20question%20%231%3A%20please%20discuss%20the%20importance%20of%20HTML%2FDOM%2FJavaScript"
+        },
+        {
+          "questionId": "6",
+          "questionTitle": "[Week2] multiple choice question #1: What is the primary focus of the course INFO5992 at the University of Sydney?",
+          "questionType": "mcq",
+          "answer": "B",
+          "userAnswer": "",
+          "hint": "Consider the course title and its main objective.",
+          "mcqOptions": [
+            {
+              "optionId": "A",
+              "optionTitle": "Understanding the history of IT",
+              "optionValue": "Understanding the history of IT",
+              "explanation": "While understanding history can be part of the course, the primary focus is on IT innovations, not just history."
+            },
+            {
+              "optionId": "B",
+              "optionTitle": "Understanding IT Innovations",
+              "optionValue": "Understanding IT Innovations",
+              "explanation": "Correct. The course is specifically designed to help students understand IT innovations."
+            },
+            {
+              "optionId": "C",
+              "optionTitle": "Learning programming languages",
+              "optionValue": "Learning programming languages",
+              "explanation": "Programming languages might be discussed, but they are not the primary focus of the course."
+            },
+            {
+              "optionId": "D",
+              "optionTitle": "Developing business strategies",
+              "optionValue": "Developing business strategies",
+              "explanation": "Business strategies may be relevant in the context of commercialisation, but the main focus is on IT innovations."
+            }
+          ],
+          "learningResource": "https://www.youtube.com/results?search_query=%5BWeek2%5D%20multiple%20choice%20question%20%231%3A%20What%20is%20the%20primary%20focus%20of%20the%20course%20INFO5992%20at%20the%20University%20of%20Sydney%3F"
+        },
+        {
+          "questionId": "7",
+          "questionTitle": "[Week2] multiple choice question #2: Which of the following is NOT a key topic covered in the INFO5992 course?",
+          "questionType": "mcq",
+          "answer": "D",
+          "userAnswer": "",
+          "hint": "Review the key topics mentioned in the course description.",
+          "mcqOptions": [
+            {
+              "optionId": "A",
+              "optionTitle": "IT Innovation",
+              "optionValue": "IT Innovation",
+              "explanation": "IT Innovation is a key topic of the course."
+            },
+            {
+              "optionId": "B",
+              "optionTitle": "Emerging Technologies",
+              "optionValue": "Emerging Technologies",
+              "explanation": "Emerging Technologies is a key topic of the course."
+            },
+            {
+              "optionId": "C",
+              "optionTitle": "Commercialisation",
+              "optionValue": "Commercialisation",
+              "explanation": "Commercialisation is a key topic of the course."
+            },
+            {
+              "optionId": "D",
+              "optionTitle": "Traditional IT Management",
+              "optionValue": "Traditional IT Management",
+              "explanation": "Traditional IT Management is not listed as a key topic in the course description."
+            }
+          ],
+          "learningResource": "https://www.youtube.com/results?search_query=%5BWeek2%5D%20multiple%20choice%20question%20%232%3A%20Which%20of%20the%20following%20is%20NOT%20a%20key%20topic%20covered%20in%20the%20INFO5992%20course%3F"
+        },
+        {
+          "questionId": "8",
+          "questionTitle": "[Week2] multiple choice question #3: What is the significance of the Acknowledgement of Country in the context of the University of Sydney's course materials?",
+          "questionType": "mcq",
+          "answer": "C",
+          "userAnswer": "",
+          "hint": "Consider the cultural significance and purpose of the Acknowledgement of Country.",
+          "mcqOptions": [
+            {
+              "optionId": "A",
+              "optionTitle": "It is a legal requirement for all courses.",
+              "optionValue": "It is a legal requirement for all courses.",
+              "explanation": "While it is a respectful practice, it is not a legal requirement for all courses."
+            },
+            {
+              "optionId": "B",
+              "optionTitle": "It recognizes the contributions of IT professionals.",
+              "optionValue": "It recognizes the contributions of IT professionals.",
+              "explanation": "The Acknowledgement of Country is about recognizing the Traditional Owners of the land, not IT professionals."
+            },
+            {
+              "optionId": "C",
+              "optionTitle": "It shows respect to the Traditional Owners of Australia.",
+              "optionValue": "It shows respect to the Traditional Owners of Australia.",
+              "explanation": "Correct. The Acknowledgement of Country is a way to show respect to the Traditional Owners of Australia."
+            },
+            {
+              "optionId": "D",
+              "optionTitle": "It is a part of the course assessment.",
+              "optionValue": "It is a part of the course assessment.",
+              "explanation": "The Acknowledgement of Country is not part of the course assessment."
+            }
+          ],
+          "learningResource": "https://www.youtube.com/results?search_query=%5BWeek2%5D%20multiple%20choice%20question%20%233%3A%20What%20is%20the%20significance%20of%20the%20Acknowledgement%20of%20Country%20in%20the%20context%20of%20the%20University%20of%20Sydney's%20course%20materials%3F"
+        },
+        {
+          "questionId": "9",
+          "questionTitle": "[Week3] multiple choice question #1: What is the primary focus of the University of Sydney's INFO5992 course?",
+          "questionType": "mcq",
+          "answer": "C",
+          "userAnswer": "",
+          "hint": "Consider the main theme of the course as indicated by its title.",
+          "mcqOptions": [
+            {
+              "optionId": "A",
+              "optionTitle": "Understanding the history of technology",
+              "optionValue": "Understanding the history of technology",
+              "explanation": "While history might be touched upon, the primary focus is on understanding IT innovations, not just their history."
+            },
+            {
+              "optionId": "B",
+              "optionTitle": "Exploring the connection between traditional cultures and technology",
+              "optionValue": "Exploring the connection between traditional cultures and technology",
+              "explanation": "Although the course acknowledges traditional cultures, its main focus is on IT innovations rather than cultural connections."
+            },
+            {
+              "optionId": "C",
+              "optionTitle": "Understanding IT Innovations",
+              "optionValue": "Understanding IT Innovations",
+              "explanation": "Correct. The course is designed to help students understand IT innovations."
+            },
+            {
+              "optionId": "D",
+              "optionTitle": "Learning about copyright laws in Australia",
+              "optionValue": "Learning about copyright laws in Australia",
+              "explanation": "Copyright laws are mentioned in the context of course materials, but they are not the primary focus of the course."
+            }
+          ],
+          "learningResource": "https://www.youtube.com/results?search_query=%5BWeek3%5D%20multiple%20choice%20question%20%231%3A%20What%20is%20the%20primary%20focus%20of%20the%20University%20of%20Sydney's%20INFO5992%20course%3F"
+        },
+        {
+          "questionId": "10",
+          "questionTitle": "[Week3] multiple choice question #2: Which of the following is acknowledged in the introduction of the INFO5992 course?",
+          "questionType": "mcq",
+          "answer": "B",
+          "userAnswer": "",
+          "hint": "Think about the cultural and historical acknowledgments made at the beginning of the course.",
+          "mcqOptions": [
+            {
+              "optionId": "A",
+              "optionTitle": "The role of AI in modern technology",
+              "optionValue": "The role of AI in modern technology",
+              "explanation": "AI is a topic of interest in technology, but the introduction specifically acknowledges traditional owners and their connection to the land."
+            },
+            {
+              "optionId": "B",
+              "optionTitle": "The Traditional Owners of Australia",
+              "optionValue": "The Traditional Owners of Australia",
+              "explanation": "Correct. The introduction acknowledges the Traditional Owners of Australia and their connection to the land."
+            },
+            {
+              "optionId": "C",
+              "optionTitle": "The impact of technology on the environment",
+              "optionValue": "The impact of technology on the environment",
+              "explanation": "While important, this is not specifically acknowledged in the introduction of the course."
+            },
+            {
+              "optionId": "D",
+              "optionTitle": "The future of technological innovations",
+              "optionValue": "The future of technological innovations",
+              "explanation": "The course may cover future innovations, but the introduction specifically acknowledges traditional owners."
+            }
+          ],
+          "learningResource": "https://www.youtube.com/results?search_query=%5BWeek3%5D%20multiple%20choice%20question%20%232%3A%20Which%20of%20the%20following%20is%20acknowledged%20in%20the%20introduction%20of%20the%20INFO5992%20course%3F"
+        },
+        {
+          "questionId": "11",
+          "questionTitle": "[Week3] multiple choice question #3: What is the significance of the copyright warning in the course materials?",
+          "questionType": "mcq",
+          "answer": "A",
+          "userAnswer": "",
+          "hint": "Consider the broader implications of copyright laws on educational materials.",
+          "mcqOptions": [
+            {
+              "optionId": "A",
+              "optionTitle": "It highlights the importance of respecting intellectual property.",
+              "optionValue": "It highlights the importance of respecting intellectual property.",
+              "explanation": "Correct. The copyright warning emphasizes the need to respect intellectual property rights."
+            },
+            {
+              "optionId": "B",
+              "optionTitle": "It is a reminder to update course materials regularly.",
+              "optionValue": "It is a reminder to update course materials regularly.",
+              "explanation": "While updating materials is important, the copyright warning is specifically about respecting intellectual property."
+            },
+            {
+              "optionId": "C",
+              "optionTitle": "It ensures that students do not share course materials online.",
+              "optionValue": "It ensures that students do not share course materials online.",
+              "explanation": "This is a part of respecting intellectual property, but the broader focus is on intellectual property rights."
+            },
+            {
+              "optionId": "D",
+              "optionTitle": "It is a legal requirement for all university courses.",
+              "optionValue": "It is a legal requirement for all university courses.",
+              "explanation": "While it may be a legal requirement, the primary significance is to highlight the importance of intellectual property."
+            }
+          ],
+          "learningResource": "https://www.youtube.com/results?search_query=%5BWeek3%5D%20multiple%20choice%20question%20%233%3A%20What%20is%20the%20significance%20of%20the%20copyright%20warning%20in%20the%20course%20materials%3F"
+        }
+      ]
+    }
+  }
+}
