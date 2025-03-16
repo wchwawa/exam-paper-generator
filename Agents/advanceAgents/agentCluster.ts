@@ -499,17 +499,12 @@ async function weeklyGenerateQuestions(weekly_state: WeeklyState): Promise<Weekl
   
   // 准备系统提示和用户指令
   const system_prompt = `
-  ## Role ##
-  You are a professional education expert, responsible for generating high-quality questions for the content of week ${week_num}.
-
   ## Task ##
   1. Use the generate_exam_questions tool to generate initial questions
   2. Use the check_questions_quality tool to check the quality of the questions
   3. If needed, regenerate or modify the questions
   4. Finally, output the questions and learning resource links in JSON format
-  
-  ## Rule ##
-  All questions must be related to the week's topic and provide complete answers and explanations.
+
   `;
   
   const user_instruction = `
@@ -518,6 +513,9 @@ async function weeklyGenerateQuestions(weekly_state: WeeklyState): Promise<Weekl
   - Multiple choice questions count: ${mcq_count}
   - Essay questions count: ${essay_count}
   - Week content: ${week_content.substring(0, 500)}...
+
+  **Important**:
+   Only output the JSON format, DO NOT include any other text.
   `;
   
   // 准备输入
@@ -537,7 +535,6 @@ async function weeklyGenerateQuestions(weekly_state: WeeklyState): Promise<Weekl
   const messages = result.messages;
   if (messages && messages.length > 0) {
     const lastMessage = messages[messages.length - 1];
-    console.log("====================*******lastMessage****** ============================= ", lastMessage.content);
     if (typeof lastMessage.content === 'string') {
       final_output = lastMessage.content;
     } else {
@@ -546,18 +543,10 @@ async function weeklyGenerateQuestions(weekly_state: WeeklyState): Promise<Weekl
   }
 
   
-  logger.debug({ final_output });
-  
   // 处理选择题和问答题
   try {
-    // 尝试从输出中提取 JSON 部分
-    let questions_json = final_output;
-    const json_match = final_output.match(/```json\n([\s\S]*?)\n```/);
-    if (json_match && json_match[1]) {
-      questions_json = json_match[1];
-    }
-    
-    const questions_data = JSON.parse(questions_json);
+    const questions_data = JSON.parse(final_output.replace(/^```json\n/, '').replace(/\n```$/, ''));
+    console.log("====================*******questions_data****** ============================= ", questions_data);
     
     // 处理选择题
     if (Array.isArray(questions_data.multiple_choice)) {
