@@ -181,30 +181,30 @@ async function supervisorAssignQuestions(supervisor_state: SupervisorState): Pro
   
   // 创建提示
   const prompt = `
-  You are a teacher responsible for assigning the number of questions to each of 12 weeks.
-  You are given the following information:
-  - The total number of questions is ${mcq_total + essay_total}.
-  - The number of multiple choice questions is ${mcq_total}.
-  - The number of essay questions is ${essay_total}.
-  - We have ${supervisor_state.total_weeks} weeks in total.
-  - The weekly topics are: ${JSON.stringify(supervisor_state.weekly_topics)}
+  ## Role ##
+  You are a teacher responsible for assigning the number of questions to each of ${supervisor_state.total_weeks} weeks.
+
+  ## Background ##
+  1. The total number of questions is ${mcq_total + essay_total}.
+  2. The number of multiple choice questions is ${mcq_total}.
+  3. The number of essay questions is ${essay_total}.
+  4. We have ${supervisor_state.total_weeks} weeks in total.
+  5. The weekly topics are: ${JSON.stringify(supervisor_state.weekly_topics)}
   
-  Weekly topics 的输出格式为：
+  ## Rule ##
+  1. The output format should be a valid JSON file with ${supervisor_state.total_weeks} weeks.
+  2. The sum of all the questions for each weekshould be equal to ${mcq_total + essay_total}.
+  3. The sum of multiple choice questions for each week should be equal to ${mcq_total}.
+  4. The sum of essay questions for each week should be equal to ${essay_total}.
+  5. The output format of weekly topics should be:
   [
       ["Key Point 1", "Key Point 2", "Key Point 3"],  # week1's key points
       ["Key Point 1", "Key Point 2", "Key Point 3"],  # week2's key points
       ...
-      ["Key Point 1", "Key Point 2", "Key Point 3"]   # week12's key points
+      ["Key Point 1", "Key Point 2", "Key Point 3"]   # week${supervisor_state.total_weeks}'s key points
   ]
 
-  Requirement:
-  - The output format should be a valid JSON file with 12 weeks.
-  - The sum of all the questions for each weekshould be equal to ${mcq_total + essay_total}.
-  - The sum of multiple choice questions for each week should be equal to ${mcq_total}.
-  - The sum of essay questions for each week should be equal to ${essay_total}.
-
-
-  Example output:
+  ## Output format ##
   {
       "week1": {
           "topics": ["Intro", "Basics"],
@@ -342,22 +342,26 @@ async function weeklyGenerateQuestions(weekly_state: WeeklyState): Promise<Weekl
   });
   
   // 准备系统提示和用户指令
-  const system_prompt = `you are a professional education expert, responsible for generating high-quality questions for the content of week ${week_num}.
+  const system_prompt = `
+  ## Role ##
+  You are a professional education expert, responsible for generating high-quality questions for the content of week ${week_num}.
+
+  ## Task ##
+  1. Use the generate_exam_questions tool to generate initial questions
+  2. Use the check_questions_quality tool to check the quality of the questions
+  3. If needed, regenerate or modify the questions
+  4. Finally, output the questions and learning resource links in JSON format
   
-  please follow the following steps:
-  1. use the generate_exam_questions tool to generate initial questions
-  2. use the check_questions_quality tool to check the quality of the questions
-  3. if needed, regenerate or modify the questions
-  4. finally, output the questions and learning resource links in JSON format
-  
-  ensure all questions are related to the week's topic and provide complete answers and explanations.
+  ## Rule ##
+  All questions must be related to the week's topic and provide complete answers and explanations.
   `;
   
-  const user_instruction = `please generate questions for week ${week_num}:
-  - topics: ${topics.join(', ')}
-  - multiple choice questions count: ${mcq_count}
-  - essay questions count: ${essay_count}
-  - week content: ${week_content.substring(0, 500)}...
+  const user_instruction = `
+  Please generate questions for week ${week_num}:
+  - Topics: ${topics.join(', ')}
+  - Multiple choice questions count: ${mcq_count}
+  - Essay questions count: ${essay_count}
+  - Week content: ${week_content.substring(0, 500)}...
   `;
   
   // 准备输入
