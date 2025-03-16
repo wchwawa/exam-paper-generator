@@ -84,7 +84,6 @@ export const generateExamQuestions = new DynamicStructuredTool({
     content: ${content}
     `;
     const response = await llm.invoke(prompt);
-    console.log("====================*******react agent response****** ============================= ", response);
     return typeof response.content === 'string' ? response.content : JSON.stringify(response.content);
   }
 });
