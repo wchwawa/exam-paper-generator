@@ -14,145 +14,6 @@ import { v4 as uuidv4 } from "uuid";
 import { writeFileSync, appendFileSync, existsSync, mkdirSync } from "fs";
 import path from "path";
 
-/**
- * Logger class for structured logging with different log levels and file output
- */
-class Logger {
-  private logLevel: "debug" | "info" | "warn" | "error";
-  private logToFile: boolean;
-  private logFilePath: string = "";
-  private sessionId: string;
-
-  constructor(
-    options: {
-      logLevel?: "debug" | "info" | "warn" | "error";
-      logToFile?: boolean;
-      logDir?: string;
-    } = {}
-  ) {
-    this.logLevel = options.logLevel || "info";
-    this.logToFile = options.logToFile || false;
-    this.sessionId = new Date().toISOString().replace(/[:.]/g, "-");
-
-    if (this.logToFile) {
-      const logDir = options.logDir || "./logs";
-      if (!existsSync(logDir)) {
-        mkdirSync(logDir, { recursive: true });
-      }
-      this.logFilePath = path.join(
-        logDir,
-        `agent-cluster-${this.sessionId}.log`
-      );
-      this.info(`Logging session started: ${this.sessionId}`);
-    }
-  }
-
-  private getTimestamp(): string {
-    return new Date().toISOString();
-  }
-
-  private shouldLog(level: string): boolean {
-    const levels = { debug: 0, info: 1, warn: 2, error: 3 };
-    return levels[level as keyof typeof levels] >= levels[this.logLevel];
-  }
-
-  private formatMessage(level: string, message: string): string {
-    return `[${this.getTimestamp()}] [${level.toUpperCase()}] ${message}`;
-  }
-
-  private log(level: string, message: string | object): void {
-    if (!this.shouldLog(level)) return;
-
-    const formattedMsg =
-      typeof message === "string"
-        ? this.formatMessage(level, message)
-        : this.formatMessage(level, JSON.stringify(message, null, 2));
-
-    console.log(formattedMsg);
-
-    if (this.logToFile) {
-      appendFileSync(this.logFilePath, formattedMsg + "\n");
-    }
-  }
-
-  debug(message: string | object): void {
-    this.log("debug", message);
-  }
-
-  info(message: string | object): void {
-    this.log("info", message);
-  }
-
-  warn(message: string | object): void {
-    this.log("warn", message);
-  }
-
-  error(message: string | object | unknown): void {
-    if (message instanceof Error) {
-      this.log("error", {
-        message: message.message,
-        stack: message.stack,
-        name: message.name,
-      });
-    } else {
-      this.log("error", message as string | object);
-    }
-  }
-
-  logToolCall(toolName: string, inputs: any): void {
-    this.info(`Tool Call: ${toolName}`);
-    this.debug({ inputs });
-  }
-
-  logToolResponse(toolName: string, response: any): void {
-    this.info(`Tool Response: ${toolName}`);
-    this.debug({ tool: toolName, response });
-  }
-
-  logAgentStep(step: number, message: any): void {
-    if (!message) {
-      this.info(`Agent Step ${step}: undefined message`);
-      return;
-    }
-
-    this.info(`Agent Step ${step}: ${message.role || "unknown"}`);
-
-    if (message?.content) {
-      this.info(
-        `Content: ${
-          typeof message.content === "string"
-            ? message.content.substring(0, 100) + "..."
-            : JSON.stringify(message.content).substring(0, 100) + "..."
-        }`
-      );
-      this.debug({ content: message.content });
-    }
-
-    if (message?.tool_calls?.length > 0) {
-      this.info(
-        `Tool Calls: ${message.tool_calls.map((tc: any) => tc.name).join(", ")}`
-      );
-      this.debug({ tool_calls: message.tool_calls });
-    }
-  }
-
-  saveOutput(filename: string, content: string): void {
-    const outputDir = "./outputs";
-    if (!existsSync(outputDir)) {
-      mkdirSync(outputDir, { recursive: true });
-    }
-    const outputPath = path.join(outputDir, filename);
-    writeFileSync(outputPath, content);
-    this.info(`Output saved to ${outputPath}`);
-  }
-}
-
-// 创建全局logger实例
-const logger = new Logger({
-  logLevel: "info",
-  logToFile: true,
-  logDir: "./logs/advanceAgents",
-});
 
 // 初始化 OpenAI 客户端
 const llm = agentClient;
@@ -256,8 +117,6 @@ function parseInputJsonToSupervisorState(
   total_mcq?: number,
   total_short_answer?: number
 ): SupervisorState {
-  logger.info("解析输入JSON到SupervisorState");
-  logger.debug({ input_json, total_weeks, total_mcq, total_short_answer });
 
   // 从 JSON 中获取统计信息
   if (total_mcq === undefined) {
@@ -304,9 +163,6 @@ function parseInputJsonToSupervisorState(
     input_json,
   };
 
-  logger.info(
-    `SupervisorState创建完成总周数: ${supervisor_state.total_weeks}, 总题目数: ${supervisor_state.statistics.overall_number}`
-  );
   return supervisor_state;
 }
 
@@ -316,8 +172,6 @@ function parseInputJsonToSupervisorState(
 async function supervisorAssignQuestions(
   supervisor_state: SupervisorState
 ): Promise<WeeklyState[]> {
-  logger.info("开始分配问题到各周");
-  logger.debug({ supervisor_state });
 
   const mcq_total = supervisor_state.statistics.total_multiple_choice;
   const short_answer_total = supervisor_state.statistics.total_short_answer;
@@ -374,7 +228,7 @@ async function supervisorAssignQuestions(
       response_format: { type: "json_object" },
     }
   );
-  logger.info("调用LLM生成问题分配");
+  
   const questions_distribution_raw = await miniLLM.invoke(prompt);
 
   // 处理 LLM 响应
@@ -385,7 +239,6 @@ async function supervisorAssignQuestions(
     response_content = JSON.stringify(questions_distribution_raw);
   }
 
-  logger.debug({ response_content });
 
   let response_json: Record<string, any> = {};
   try {
@@ -474,8 +327,6 @@ async function supervisorAssignQuestions(
     weekly_states.push(w_state);
   }
 
-  logger.info(`问题分配完成，共${weekly_states.length}周`);
-  logger.debug({ weekly_states });
   return weekly_states;
 }
 
@@ -487,8 +338,7 @@ async function weeklyGenerateQuestions(
 ): Promise<WeeklyState> {
   // 获取基本信息
   const week_num = weekly_state.week_number;
-  logger.info(`开始为第${week_num}周生成题目`);
-  logger.debug({ weekly_state });
+
 
   const topics = weekly_state.topics;
   const mcq_count = weekly_state.assigned_questions.multiple_choice;
@@ -512,7 +362,6 @@ async function weeklyGenerateQuestions(
   ];
   const toolNode = new ToolNode(tools);
 
-  logger.info("创建ReAct代理");
   const react_agent = createReactAgent({
     llm,
     tools,
@@ -548,7 +397,7 @@ async function weeklyGenerateQuestions(
   };
 
   // 执行代理
-  logger.info("执行ReAct代理生成题目");
+
   const result = await react_agent.invoke(inputs);
 
   // 从结果中提取最终 JSON
@@ -575,7 +424,6 @@ async function weeklyGenerateQuestions(
 
     // 处理选择题
     if (Array.isArray(questions_data.multiple_choice)) {
-      logger.info(`处理${questions_data.multiple_choice.length}道选择题`);
       for (let i = 0; i < questions_data.multiple_choice.length; i++) {
         const mcq = questions_data.multiple_choice[i];
         weekly_state.generated_questions.push({
@@ -593,7 +441,6 @@ async function weeklyGenerateQuestions(
 
     // 处理问答题
     if (Array.isArray(questions_data.short_answer)) {
-      logger.info(`处理${questions_data.short_answer.length}道问答题`);
       for (let i = 0; i < questions_data.short_answer.length; i++) {
         const short_answer = questions_data.short_answer[i];
         weekly_state.generated_questions.push({
@@ -609,7 +456,6 @@ async function weeklyGenerateQuestions(
     }
   } catch (e) {
     // 如果出现任何异常，使用备用方案
-    logger.error(`第${week_num}周题目处理失败: ${e}, 使用备用方案`);
 
     // 备用方案
     for (let i = 0; i < mcq_count; i++) {
@@ -638,9 +484,6 @@ async function weeklyGenerateQuestions(
     }
   }
 
-  logger.info(
-    `第${week_num}周题目生成完成，共${weekly_state.generated_questions.length}道题`
-  );
   return weekly_state;
 }
 
@@ -650,8 +493,6 @@ async function weeklyGenerateQuestions(
 async function managerCollectQuestions(
   manager_state: typeof ManagerStateAnnotation.State
 ): Promise<typeof ManagerStateAnnotation.State> {
-  logger.info("开始汇总所有周的结果");
-  logger.debug({ manager_state });
 
   // 这里假设我们统一设置
   const paper_id = uuidv4();
@@ -668,7 +509,6 @@ async function managerCollectQuestions(
   let question_id_counter = 1;
 
   // 为每个题目查找学习资源
-  logger.info("为所有题目查找学习资源");
   const all_questions: QuestionOutputState[] = [];
   for (const week_state of manager_state.weekly_states) {
     all_questions.push(...week_state.generated_questions);
@@ -683,7 +523,6 @@ async function managerCollectQuestions(
   }
 
   // 遍历所有周的题目，把它们整合到一个大的 question[] 列表
-  logger.info("整合所有题目到试卷结构");
   for (const week_state of manager_state.weekly_states) {
     for (const q of week_state.generated_questions) {
       // 根据 q_type 区分：是 multiple_choice 还是 short_answer
@@ -693,7 +532,7 @@ async function managerCollectQuestions(
         const mcq_options = [];
         for (const opt_str of q.options || []) {
           // 记录选项处理过程
-          logger.debug(`处理选项: ${JSON.stringify(opt_str)}`);
+          console.log(`处理选项: ${JSON.stringify(opt_str)}`);
 
           // 处理不同格式的选项
           let optionId = "X";
@@ -772,8 +611,7 @@ async function managerCollectQuestions(
   }
 
   // 这里你可以把 testPaper 直接写入文件，也可以返回
-  logger.info("试卷生成完成");
-  logger.saveOutput("testPaper.json", JSON.stringify(testPaper, null, 2));
+  console.log("试卷生成完成");
 
   // 更新 manager_state 中的 testPaper
   return {
@@ -790,7 +628,7 @@ async function managerCollectQuestions(
 async function supervisorNodeFn(
   manager_state: typeof ManagerStateAnnotation.State
 ): Promise<typeof ManagerStateAnnotation.State> {
-  logger.info("执行supervisor节点");
+  console.log("执行supervisor节点");
   const all_w = await supervisorAssignQuestions(manager_state.supervisor_state);
 
   // 为每个周状态添加对supervisor_state的引用，以便访问原始内容
@@ -811,7 +649,7 @@ function weeklyNodeFn(week_index: number) {
   return async (
     manager_state: typeof ManagerStateAnnotation.State
   ): Promise<Partial<typeof ManagerStateAnnotation.State>> => {
-    logger.info(`执行第${week_index}周节点`);
+    console.log(`执行第${week_index}周节点`);
     const old_week_state = manager_state.weekly_states[week_index - 1];
     const new_week_state = await weeklyGenerateQuestions(old_week_state);
     // 只返回更新的周状态，而不是整个manager_state
@@ -827,7 +665,7 @@ function weeklyNodeFn(week_index: number) {
 async function managerCollectNodeFn(
   manager_state: typeof ManagerStateAnnotation.State
 ): Promise<typeof ManagerStateAnnotation.State> {
-  logger.info("执行manager汇总节点");
+  console.log("执行manager汇总节点");
   return await managerCollectQuestions(manager_state);
 }
 
@@ -886,8 +724,8 @@ async function callAgentCluster(
   total_mcq: number,
   total_short_answer: number
 ) {
-  logger.info("开始执行Agent Cluster");
-  logger.debug({ input, total_weeks, total_mcq, total_short_answer });
+  console.log("开始执行Agent Cluster");
+  console.log({ input, total_weeks, total_mcq, total_short_answer });
 
   const sup_state = parseInputJsonToSupervisorState(
     input,
@@ -898,18 +736,18 @@ async function callAgentCluster(
 
   const graph = buildGraphWithWeeks(total_weeks);
 
-  logger.info("图构建成功");
+  console.log("图构建成功");
 
   const init_manager_state = {
     supervisor_state: sup_state,
     weekly_states: [],
   };
 
-  logger.info("开始执行图");
+  console.log("开始执行图");
   const final_state = await graph.invoke(init_manager_state);
 
-  logger.info("图执行完成");
-  logger.debug({ final_state });
+  console.log("图执行完成");
+  console.log({ final_state });
 
   return final_state;
 }
