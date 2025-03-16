@@ -69,6 +69,7 @@ export default function PaperView() {
 
   const router = useRouter();
 
+  const [paperTitle] = useState(localStorage.getItem("title"));
   const [folderId] = useQueryState("folderId");
   const [mcqAnswerNumber] = useQueryState("mcqAnswerNumber");
   const [shortAnswerNumber] = useQueryState("shortAnswerNumber");
@@ -268,7 +269,7 @@ export default function PaperView() {
         boxShadow="md"
         className="page-header"
       >
-        <Heading>Data Structure and Algorithm</Heading>
+        <Heading>{paperTitle}</Heading>
         <Group spaceX={2}>
           <Tag.Root>
             <Tag.Label>AI Generated Practice Exam</Tag.Label>
@@ -288,7 +289,7 @@ export default function PaperView() {
           className="bg-white flex-1 print-content"
         >
           <Heading size="2xl" mb={6}>
-            Data Structure And Algorithm Practice Exam
+            {paperTitle}
           </Heading>
 
           <section className="flex flex-col gap-5">
