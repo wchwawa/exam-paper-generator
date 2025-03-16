@@ -25,29 +25,13 @@ export default function RootLayout({
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
-	return (
-		<html
-			style={{
-				colorScheme: "light",
-			}}
-			suppressHydrationWarning
-			className="light"
-			lang="en"
-		>
-			<body
-				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-			>
-				<NuqsAdapter>
-					<ThemeProvider
-						attribute="class"
-						defaultTheme="system"
-						enableSystem
-						disableTransitionOnChange
-					>
-						<Provider>{children}</Provider>
-					</ThemeProvider>
-				</NuqsAdapter>
-			</body>
-		</html>
-	);
+  return (
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body className="antialiased">
+        <NuqsAdapter>
+          <Provider>{children}</Provider>
+        </NuqsAdapter>
+      </body>
+    </html>
+  );
 }
