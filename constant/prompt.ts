@@ -1,5 +1,3 @@
-
-
 const EXAMPLE_LECTURE_CONTENT = `Lets examine the merits of electric cars throu
 gh a structured lens, focusing on their environmental, practical, and technological dimensions. First, consider their environmental impact: electric vehicles (EVs) produce zero tailpipe emissions. Unlike gasoline engines, which release carbon dioxide and particulates—contributing to phenomena like urban smog—EVs operate on battery-powered motors. In a city like Los Angeles, widespread EV adoption could measurably reduce air pollution, offering a practical case study in emissions control.
 
@@ -39,7 +37,6 @@ A
 microcredential
 `;
 
-
 const EXAMPLE_LECTURE_CONTENT_AFTER_PARSING = `### Introduction to Electric Cars  
 Lets examine the merits of electric cars through a structured lens, focusing on their environmental, practical, and technological dimensions. This analysis highlights why EVs are increasingly central to discussions on sustainable transportation.
 
@@ -56,13 +53,12 @@ Economically, EVs present a compelling argument. Though their purchase price oft
 Now, infrastructure: charging networks are scaling up. By 2025, Teslas Supercharger count exceeds 2,000 globally, yet gaps persist—rural drivers face “range anxiety” where urbanites dont. Technology counters this: the Lucid Air boasts a 500-mile range, and fast chargers, like those for the Hyundai Ioniq 6, hit 80% capacity in 18 minutes.
 
 ### Conclusion  
-In conclusion, EVs offer a triad of benefits—zero emissions, reduced noise, and cost efficiency—underpinned by evolving infrastructure and tech. Challenges remain, but the trajectory points to a transformative shift in transportation dynamics. Questions? Let’s discuss.`
-
+In conclusion, EVs offer a triad of benefits—zero emissions, reduced noise, and cost efficiency—underpinned by evolving infrastructure and tech. Challenges remain, but the trajectory points to a transformative shift in transportation dynamics. Questions? Let’s discuss.`;
 
 export const PROMPT_PARSE_PDF_ADVANCED = (options: {
-  input: string
+  input: string;
 }): string => {
-  return`You are a helpful assistant that can parse a string and return the text in a structured JSON format.
+  return `You are a helpful assistant that can parse a string and return the text in a structured JSON format.
    The string is an University lecture slides of one week's lecture content.
 
    ** Task **
@@ -100,13 +96,11 @@ export const PROMPT_PARSE_PDF_ADVANCED = (options: {
 
    ** Input string (lecture content) **
    ${options.input}
-    `
+    `;
 };
 
-export const PROMPT_PARSE_PDF_SHORT = (options: {
-  input: string
-}): string => {
-  return`You are a helpful assistant that can parse a string and return the text in a structured JSON format.
+export const PROMPT_PARSE_PDF_SHORT = (options: { input: string }): string => {
+  return `You are a helpful assistant that can parse a string and return the text in a structured JSON format.
    The string is an University lecture slides of one week's lecture content.
 
    ** Task **
@@ -138,15 +132,13 @@ export const PROMPT_PARSE_PDF_SHORT = (options: {
 
    ** Input string (lecture content) **
    ${options.input}
-    `
+    `;
 };
 
-
-
 export const PROMPT_GENERATE_QUESTION_PAPER = (option?: {
-  mcqNumber: number,
-  shortAnswerNumber: number,
-  content: JSON | any,
+  mcqNumber: number;
+  shortAnswerNumber: number;
+  content: JSON | any;
 }) => {
   if (!option) {
     return `
@@ -154,7 +146,7 @@ export const PROMPT_GENERATE_QUESTION_PAPER = (option?: {
 
     ** Task **
     1. Fully understand the lecture content by reading the lectureTitle, abstract, keyPoints fields.
-    `
+    `;
   }
   if (!option.mcqNumber) {
     option.mcqNumber = 0;
@@ -167,7 +159,7 @@ export const PROMPT_GENERATE_QUESTION_PAPER = (option?: {
 
   ** Task **
   1. Fully understand the lecture content by reading the lectureTitle, abstract, keyPoints fields.
-  2. Based on content in "content" field, generate ${option.mcqNumber} multiple-choice questions and ${option.shortAnswerNumber} short-answer questions.
+  2. Based on content in "content" field, generate ${option.mcqNumber} multiple-choice questions and ${option.shortAnswerNumber} short_answer questions.
   3. The question paper should be in the same language as the lecture content.
 
   ** Requirement **
@@ -175,8 +167,8 @@ export const PROMPT_GENERATE_QUESTION_PAPER = (option?: {
 
   ** Input content **
   ${option.content}
-  `
-}
+  `;
+};
 
 export const CONTEXT = `
 ## Role ##
@@ -187,7 +179,7 @@ Your output should be in JSON format with the tool "response_format_tool".
 1. I would give you a series of learning resources and you need to fully understand all of it.
 2. Provide a series of quesitons fully based on the learning resources.
 3. Figure out each option of the MCQ with an detailed explanation, try to cover all the important knowledge points. 
-4. Figure out the outline and skill of the short-answer question and explain the improvements for user's answer.
+4. Figure out the outline and skill of the short_answer question and explain the improvements for user's answer.
 
 ## Rule ##
 1. All the questions should be from the provided resources and you need to cover all the important knowledge points.
@@ -221,12 +213,12 @@ Your output should be in JSON format with the tool "response_format_tool".
     }
     // More multiple choice questions...
     ],
-    "short-answer": [
+    "short_answer": [
     {
         "question": "Question content",
         "answer": "Reference answer"
     }
-    // More essay questions...
+    // More short_answer questions...
     ]
 }
 `;
@@ -265,7 +257,7 @@ Please provide me a series of quesitons and answers based on the key points extr
 1. I would give you a series of key points extracted from the learning resources and you need to fully understand all of it.
 2. Provide a series of quesitons fully based on the key points.
 3. Figure out each option of the MCQ with an detailed explanation, try to cover all the important knowledge points from the key points. 
-4. Figure out the outline and skill of the short-answer question and explain the improvements for user's answer.
+4. Figure out the outline and skill of the short_answer question and explain the improvements for user's answer.
 
 ## Rule ##
 1. All the questions should be from the key points and you need to cover all the important knowledge points.
@@ -299,12 +291,12 @@ Please provide me a series of quesitons and answers based on the key points extr
     }
     // More multiple choice questions...
     ],
-    "short-answer": [
+    "short_answer": [
     {
         "question": "Question content",
         "answer": "Reference answer"
     }
-    // More essay questions...
+    // More short_answer questions...
     ]
 }
 `;
