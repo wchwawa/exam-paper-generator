@@ -161,7 +161,7 @@ const llm = agentClient;
 // 这些类型对应 Python 代码中的 TypedDict 类
 
 // 单个题目的输出类型
-type QuestionType = "multiple_choice" | "essay";
+type QuestionType = "multiple_choice" | "short_answer";
 
 interface QuestionOutputState {
   question: string;
@@ -175,7 +175,7 @@ interface QuestionOutputState {
 // 统计信息类型
 interface StatisticsState {
   total_multiple_choice: number;
-  total_essay: number;
+  total_short_answer: number;
   overall_number: number;
 }
 
@@ -185,7 +185,7 @@ interface WeeklyState {
   topics: string[];
   assigned_questions: {
     multiple_choice: number;
-    essay: number;
+    short_answer: number;
   };
   generated_questions: QuestionOutputState[];
   supervisor_state?: SupervisorState; // 可选引用
@@ -205,7 +205,7 @@ const WeeklyStateAnnotation = Annotation.Root({
   topics: Annotation<string[]>(),
   assigned_questions: Annotation<{
     multiple_choice: number;
-    essay: number;
+    short_answer: number;
   }>(),
   generated_questions: Annotation<QuestionOutputState[]>({
     default: () => [],
@@ -254,20 +254,20 @@ function parseInputJsonToSupervisorState(
   input_json: Record<string, any>,
   total_weeks?: number,
   total_mcq?: number,
-  total_essay?: number
+  total_short_answer?: number
 ): SupervisorState {
   logger.info("解析输入JSON到SupervisorState");
-  logger.debug({ input_json, total_weeks, total_mcq, total_essay });
+  logger.debug({ input_json, total_weeks, total_mcq, total_short_answer });
 
   // 从 JSON 中获取统计信息
   if (total_mcq === undefined) {
     total_mcq = input_json.number_of_MCQ || 10;
   }
-  if (total_essay === undefined) {
-    total_essay = input_json.number_of_Essay || 3;
+  if (total_short_answer === undefined) {
+    total_short_answer = input_json.number_of_short_answer || 3;
   }
 
-  const overall_number = (total_mcq || 0) + (total_essay || 0);
+  const overall_number = (total_mcq || 0) + (total_short_answer || 0);
 
   // 从每个 weekN 提取内容，组装成周数据
   const weekly_topics: string[][] = [];
@@ -297,7 +297,7 @@ function parseInputJsonToSupervisorState(
     total_weeks: total_weeks || 3,
     statistics: {
       total_multiple_choice: total_mcq || 10,
-      total_essay: total_essay || 3,
+      total_short_answer: total_short_answer || 3,
       overall_number,
     },
     weekly_topics,
@@ -320,7 +320,7 @@ async function supervisorAssignQuestions(
   logger.debug({ supervisor_state });
 
   const mcq_total = supervisor_state.statistics.total_multiple_choice;
-  const essay_total = supervisor_state.statistics.total_essay;
+  const short_answer_total = supervisor_state.statistics.total_short_answer;
   const weekly_states: WeeklyState[] = [];
 
   // 创建提示
@@ -331,21 +331,20 @@ async function supervisorAssignQuestions(
   } weeks.
 
   ## Background ##
-  1. The total number of questions is ${mcq_total + essay_total}.
-  2. The number of multiple choice questions is ${mcq_total}.
-  3. The number of essay questions is ${essay_total}.
-  4. We have ${supervisor_state.total_weeks} weeks in total.
-  5. The weekly topics are: ${JSON.stringify(supervisor_state.weekly_topics)}
+  1. The number of multiple choice questions is ${mcq_total}.
+  2. The number of short_answer questions is ${short_answer_total}.
+  3. We have ${supervisor_state.total_weeks} weeks in total.
+  4. The weekly topics are: ${JSON.stringify(supervisor_state.weekly_topics)}
   
   ## Rule ##
   1. The output format should be a valid JSON file with ${
     supervisor_state.total_weeks
   } weeks.
   2. The sum of all the questions for each weekshould be equal to ${
-    mcq_total + essay_total
+    mcq_total + short_answer_total
   }.
   3. The sum of multiple choice questions for each week should be equal to ${mcq_total}.
-  4. The sum of essay questions for each week should be equal to ${essay_total}.
+  4. The sum of short_answer questions for each week should be equal to ${short_answer_total}.
   5. The output format of weekly topics should be:
   [
       ["Key Point 1", "Key Point 2", "Key Point 3"],  # week1's key points
@@ -362,7 +361,7 @@ async function supervisorAssignQuestions(
           "topics": ["Intro", "Basics"],
           "assigned_questions": {
               "multiple_choice": 4,
-              "essay": 2
+              "short_answer": 2
           }
       },
       ...
@@ -408,7 +407,7 @@ async function supervisorAssignQuestions(
         topics: supervisor_state.weekly_topics[i - 1],
         assigned_questions: {
           multiple_choice: Math.floor(mcq_total / total_weeks),
-          essay: Math.floor(essay_total / total_weeks),
+          short_answer: Math.floor(short_answer_total / total_weeks),
         },
       };
     }
@@ -419,7 +418,7 @@ async function supervisorAssignQuestions(
   for (let i = 1; i <= total_weeks; i++) {
     const week_key = `week${i}`;
     let topics: string[] = [];
-    let assigned: { multiple_choice: number; essay: number };
+    let assigned: { multiple_choice: number; short_answer: number };
 
     if (week_key in response_json) {
       // 如果 LLM 给了对应周的分配
@@ -431,27 +430,35 @@ async function supervisorAssignQuestions(
       // 确保分配了题目数量
       let mcq =
         assigned_raw.multiple_choice || Math.floor(mcq_total / total_weeks);
-      let essay = assigned_raw.essay || Math.floor(essay_total / total_weeks);
+      let short_answer =
+        assigned_raw.short_answer ||
+        Math.floor(short_answer_total / total_weeks);
 
       // 验证题目数量大于0
       if (mcq <= 0) {
         mcq = Math.max(1, Math.floor(mcq_total / total_weeks));
       }
-      if (essay <= 0) {
-        essay = Math.max(1, Math.floor(essay_total / total_weeks));
+      if (short_answer <= 0) {
+        short_answer = Math.max(
+          1,
+          Math.floor(short_answer_total / total_weeks)
+        );
       }
 
       assigned = {
         multiple_choice: mcq,
-        essay: essay,
+        short_answer: short_answer,
       };
     } else {
       // fallback：如果 LLM 没给这周，均分
       const mcq = Math.max(1, Math.floor(mcq_total / total_weeks));
-      const essay = Math.max(1, Math.floor(essay_total / total_weeks));
+      const short_answer = Math.max(
+        1,
+        Math.floor(short_answer_total / total_weeks)
+      );
       assigned = {
         multiple_choice: mcq,
-        essay: essay,
+        short_answer: short_answer,
       };
       topics = supervisor_state.weekly_topics[i - 1];
     }
@@ -485,7 +492,7 @@ async function weeklyGenerateQuestions(
 
   const topics = weekly_state.topics;
   const mcq_count = weekly_state.assigned_questions.multiple_choice;
-  const essay_count = weekly_state.assigned_questions.essay;
+  const short_answer_count = weekly_state.assigned_questions.short_answer;
 
   // 获取周内容
   let week_content = "";
@@ -525,7 +532,7 @@ async function weeklyGenerateQuestions(
   Please generate questions for week ${week_num}:
   - Topics: ${topics.join(", ")}
   - Multiple choice questions count: ${mcq_count}
-  - Essay questions count: ${essay_count}
+  - short_answer questions count: ${short_answer_count}
   - Week content: ${week_content.substring(0, 500)}...
 
   **Important**:
@@ -585,17 +592,17 @@ async function weeklyGenerateQuestions(
     }
 
     // 处理问答题
-    if (Array.isArray(questions_data.essay)) {
-      logger.info(`处理${questions_data.essay.length}道问答题`);
-      for (let i = 0; i < questions_data.essay.length; i++) {
-        const essay = questions_data.essay[i];
+    if (Array.isArray(questions_data.short_answer)) {
+      logger.info(`处理${questions_data.short_answer.length}道问答题`);
+      for (let i = 0; i < questions_data.short_answer.length; i++) {
+        const short_answer = questions_data.short_answer[i];
         weekly_state.generated_questions.push({
-          question: `[Week${week_num}] essay question #${i + 1}: ${
-            essay.question || ""
+          question: `[Week${week_num}] short_answer question #${i + 1}: ${
+            short_answer.question || ""
           }`,
-          answer: essay.answer || "",
-          hint: essay.hint || "",
-          q_type: "essay",
+          answer: short_answer.answer || "",
+          hint: short_answer.hint || "",
+          q_type: "short_answer",
           learning_link: "", // 空字符串，稍后填充
         });
       }
@@ -618,14 +625,14 @@ async function weeklyGenerateQuestions(
       });
     }
 
-    for (let i = 0; i < essay_count; i++) {
+    for (let i = 0; i < short_answer_count; i++) {
       weekly_state.generated_questions.push({
-        question: `[Week${week_num}] essay question #${
+        question: `[Week${week_num}] short_answer question #${
           i + 1
         }: please discuss the importance of ${topics.join("/")}`,
         answer: `reference answer about ${topics.join("/")}`,
         hint: "none",
-        q_type: "essay",
+        q_type: "short_answer",
         learning_link: "",
       });
     }
@@ -679,7 +686,7 @@ async function managerCollectQuestions(
   logger.info("整合所有题目到试卷结构");
   for (const week_state of manager_state.weekly_states) {
     for (const q of week_state.generated_questions) {
-      // 根据 q_type 区分：是 multiple_choice 还是 essay
+      // 根据 q_type 区分：是 multiple_choice 还是 short_answer
       console.log("week ", week_state.week_number, "question ", q);
       if (q.q_type === "multiple_choice") {
         // 将 MCQ 题型转换到你想要的字段
@@ -747,12 +754,12 @@ async function managerCollectQuestions(
 
         testPaper.question.push(new_question);
         question_id_counter += 1;
-      } else if (q.q_type === "essay") {
+      } else if (q.q_type === "short_answer") {
         // 对于简答题
         const new_question = {
           questionId: String(question_id_counter),
           questionTitle: q.question,
-          questionType: "short-answer",
+          questionType: "short_answer",
           userAnswer: "", // 先留空或默认值
           hint: q.answer, // 简答题的答案放在 hint
           learningResource: q.learning_link, // 添加学习资源链接
@@ -877,16 +884,16 @@ async function callAgentCluster(
   input: any,
   total_weeks: number,
   total_mcq: number,
-  total_essay: number
+  total_short_answer: number
 ) {
   logger.info("开始执行Agent Cluster");
-  logger.debug({ input, total_weeks, total_mcq, total_essay });
+  logger.debug({ input, total_weeks, total_mcq, total_short_answer });
 
   const sup_state = parseInputJsonToSupervisorState(
     input,
     total_weeks,
     total_mcq,
-    total_essay
+    total_short_answer
   );
 
   const graph = buildGraphWithWeeks(total_weeks);

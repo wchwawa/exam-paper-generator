@@ -3,7 +3,8 @@
 import MCQ from "@/components/questions/mcq";
 import SimpleAnswerQuestion from "@/components/questions/simple-answer";
 import { useQuestionStore } from "@/store/questionStore";
-import { usePdfGenerator } from "../hooks/usePdfGenerator";
+import { usePDF } from "react-to-pdf";
+
 import {
   Box,
   Button,
@@ -77,6 +78,10 @@ function PaperView() {
   const router = useRouter();
 
   const [paperTitle, setPaperTitle] = useState("");
+
+  const { toPDF, targetRef } = usePDF({
+    filename: `${paperTitle || "Exam Paper"}.pdf`,
+  });
 
   useEffect(() => setPaperTitle(localStorage.getItem("title") ?? ""), []);
   const [folderId] = useQueryState("folderId");
@@ -157,8 +162,6 @@ function PaperView() {
 
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const { generatePdf, isGenerating } = usePdfGenerator();
 
   // Timer effect
   useEffect(() => {
@@ -192,16 +195,6 @@ function PaperView() {
     setIsTimerRunning(false);
     revealMarking();
   };
-
-  // const handleDownloadPdf = async () => {
-  //   if (contentRef.current) {
-  //     await generatePdf(
-  //       contentRef,
-  //       "Data Structure And Algorithm Practice Exam",
-  //       exampleQuestions
-  //     );
-  //   }
-  // };
 
   if (isLoading) {
     return (
@@ -251,18 +244,27 @@ function PaperView() {
                 padding: 0 !important;
                 margin: 0 !important;
                 width: 100% !important;
+                max-width: 21cm !important;
               }
               .question-card {
                 break-inside: avoid;
                 page-break-inside: avoid;
-                margin-bottom: 1.5rem;
-                border: none !important;
+                margin-bottom: 2rem !important;
+                padding: 1rem !important;
+                border: 1px solid #e2e8f0 !important;
                 box-shadow: none !important;
+              }
+              .answer-space {
+                min-height: 150px;
+                border: 1px dashed #e2e8f0;
+                margin-top: 1rem;
+                margin-bottom: 1rem;
               }
               .page-header {
                 position: static !important;
                 box-shadow: none !important;
                 margin-bottom: 2rem;
+                padding: 0 !important;
               }
             }
         `}
@@ -291,7 +293,7 @@ function PaperView() {
 
       <Flex px={12} gapX={18} py={24}>
         <Box
-          ref={contentRef}
+          ref={targetRef}
           w={"100%"}
           px={4}
           py={3}
@@ -345,7 +347,7 @@ function PaperView() {
                 <Box key={questionId} className="question-card">
                   <SimpleAnswerQuestion
                     questionNumber={index + 1}
-                    hint={originalQuestion.hint}
+                    hint={progress?.isRevealed ? originalQuestion.hint : ""}
                     title={`${index + 1}. ${originalQuestion.questionTitle}`}
                     explanation={
                       progress?.isRevealed &&
@@ -410,9 +412,8 @@ function PaperView() {
                 Time spent: {formatTime(elapsedTime)}
               </Text>
             )}
-            <Button variant="outline" w="100%" disabled={isGenerating}>
-              {isGenerating && <Spinner size="sm" mr={2} />}
-              {isGenerating ? "Generating PDF..." : "Download as PDF"}
+            <Button variant="outline" w="100%" onClick={() => toPDF()}>
+              Generate PDF
             </Button>
             <Box borderBottom="1px solid" borderColor="gray.200" />
             <Button

@@ -109,11 +109,11 @@
     },
     {
       "questionId": "4",
-      "questionTitle": "[Week1] essay question #1: Explain the relationship between HTML, the DOM, and events in web development.",
+      "questionTitle": "[Week1] short_answer question #1: Explain the relationship between HTML, the DOM, and events in web development.",
       "questionType": "short-answer",
       "userAnswer": "",
       "explanation": "HTML is the standard markup language used to create web pages. It provides the structure of a webpage by using elements and tags. The DOM (Document Object Model) is an interface that allows programs and scripts to dynamically access and update the content, structure, and style of a document. It represents the page so that programs can change the document structure, style, and content. Events are actions or occurrences that happen in the system you are programming, which the system tells you about so your code can respond to them. In web development, events are often triggered by user actions such as clicking, typing, or moving the mouse. The DOM allows developers to attach event listeners to HTML elements, enabling interactive and dynamic web pages.",
-      "learningResource": "https://www.youtube.com/results?search_query=%5BWeek1%5D%20essay%20question%20%231%3A%20Explain%20the%20relationship%20between%20HTML%2C%20the%20DOM%2C%20and%20events%20in%20web%20development."
+      "learningResource": "https://www.youtube.com/results?search_query=%5BWeek1%5D%20short_answer%20question%20%231%3A%20Explain%20the%20relationship%20between%20HTML%2C%20the%20DOM%2C%20and%20events%20in%20web%20development."
     },
     {
       "questionId": "5",
@@ -222,11 +222,11 @@
     },
     {
       "questionId": "8",
-      "questionTitle": "[Week2] essay question #1: Discuss the importance of debugging and pre-validation in JavaScript development. How do these practices contribute to the overall quality and reliability of web applications?",
+      "questionTitle": "[Week2] short_answer question #1: Discuss the importance of debugging and pre-validation in JavaScript development. How do these practices contribute to the overall quality and reliability of web applications?",
       "questionType": "short-answer",
       "userAnswer": "",
       "explanation": "Debugging is crucial in JavaScript development as it helps identify and fix errors in the code, ensuring that the application functions as intended. Effective debugging can prevent runtime errors and improve the user experience by providing a smooth and error-free interaction. Pre-validation, on the other hand, enhances data integrity by ensuring that user inputs meet the required criteria before being processed by the server. This reduces the risk of errors and security vulnerabilities, such as SQL injection or cross-site scripting. Together, debugging and pre-validation contribute to the overall quality and reliability of web applications by ensuring that they are robust, secure, and user-friendly.",
-      "learningResource": "https://www.youtube.com/results?search_query=%5BWeek2%5D%20essay%20question%20%231%3A%20Discuss%20the%20importance%20of%20debugging%20and%20pre-validation%20in%20JavaScript%20development.%20How%20do%20these%20practices%20contribute%20to%20the%20overall%20quality%20and%20reliability%20of%20web%20applications%3F"
+      "learningResource": "https://www.youtube.com/results?search_query=%5BWeek2%5D%20short_answer%20question%20%231%3A%20Discuss%20the%20importance%20of%20debugging%20and%20pre-validation%20in%20JavaScript%20development.%20How%20do%20these%20practices%20contribute%20to%20the%20overall%20quality%20and%20reliability%20of%20web%20applications%3F"
     },
     {
       "questionId": "9",
@@ -300,11 +300,11 @@
     },
     {
       "questionId": "11",
-      "questionTitle": "[Week3] essay question #1: Discuss the significance of acknowledging the Traditional Owners of Australia in the context of IT innovations and education. How can this practice influence the development and implementation of IT solutions?",
+      "questionTitle": "[Week3] short_answer question #1: Discuss the significance of acknowledging the Traditional Owners of Australia in the context of IT innovations and education. How can this practice influence the development and implementation of IT solutions?",
       "questionType": "short-answer",
       "userAnswer": "",
       "explanation": "Acknowledging the Traditional Owners of Australia in the context of IT innovations and education is significant as it fosters a respectful and inclusive environment that values diverse perspectives. This practice can influence the development and implementation of IT solutions by encouraging the incorporation of Indigenous knowledge systems and cultural considerations into technology design and application. By recognizing the unique insights and contributions of Indigenous communities, IT professionals can create more culturally sensitive and effective solutions that address the needs of all users. Additionally, this acknowledgment can promote collaboration and partnership with Indigenous communities, leading to innovations that are not only technologically advanced but also socially and culturally responsible.",
-      "learningResource": "https://www.youtube.com/results?search_query=%5BWeek3%5D%20essay%20question%20%231%3A%20Discuss%20the%20significance%20of%20acknowledging%20the%20Traditional%20Owners%20of%20Australia%20in%20the%20context%20of%20IT%20innovations%20and%20education.%20How%20can%20this%20practice%20influence%20the%20development%20and%20implementation%20of%20IT%20solutions%3F"
+      "learningResource": "https://www.youtube.com/results?search_query=%5BWeek3%5D%20short_answer%20question%20%231%3A%20Discuss%20the%20significance%20of%20acknowledging%20the%20Traditional%20Owners%20of%20Australia%20in%20the%20context%20of%20IT%20innovations%20and%20education.%20How%20can%20this%20practice%20influence%20the%20development%20and%20implementation%20of%20IT%20solutions%3F"
     }
   ]
 }
