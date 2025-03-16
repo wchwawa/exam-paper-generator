@@ -57,7 +57,7 @@ const SimpleAnswerQuestion: FC<{
         value={userAnswer || ""}
         onChange={(e) => onAnswer?.(e.target.value)}
       />
-      {learningResource && <VideoPlayer videoLink={learningResource} />}
+      {/* {learningResource && <VideoPlayer videoLink={learningResource} />} */}
     </Box>
   );
 };

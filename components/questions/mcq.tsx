@@ -1,6 +1,5 @@
 "use client";
 
-import VideoPlayer from "@/app/components/VideoPlayer";
 import { Accordion, Alert, Box, Flex, Grid, Text } from "@chakra-ui/react";
 import { IconInfoCircle } from "@tabler/icons-react";
 import { FC, useEffect, useState } from "react";
@@ -163,8 +162,6 @@ export default function MCQ({
             </Alert.Content>
           </Alert.Root>
         )}
-
-      {learningResource && <VideoPlayer videoLink={learningResource} />}
     </Box>
   );
 }
