@@ -19,32 +19,38 @@ import {
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryState } from "nuqs";
-import { Question } from "@/store/paperStore";
+import { Question as StoreQuestion } from "@/store/paperStore";
 
 interface MCQOption {
-  option: string;
+  optionId: string;
+  optionTitle: string;
+  optionValue: string;
   explanation: string;
 }
 
-interface MultipleChoiceQuestion {
-  question: string;
-  options: MCQOption[];
-  answer: string;
+interface APIQuestion {
+  questionId: string;
+  questionTitle: string;
+  questionType: "mcq" | "short-answer";
+  answer?: string;
+  userAnswer: string;
+  hint?: string;
+  explanation?: string;
+  mcqOptions?: MCQOption[];
+  learningResource?: string;
 }
 
-interface ShortAnswerQuestion {
-  question: string;
-  answer: string;
+interface GeneratedPaper {
+  paperId: string;
+  paperTitle: string;
+  question: APIQuestion[];
 }
 
 interface APIResponse {
   success: boolean;
   message: string;
   data: {
-    examPaper: {
-      multiple_choice: MultipleChoiceQuestion[];
-      "short-answer": ShortAnswerQuestion[];
-    };
+    generatedPaper: GeneratedPaper;
   };
 }
 
@@ -89,44 +95,34 @@ export default function PaperView() {
       const result: APIResponse = await response.json();
 
       if (result.success) {
-        const { multiple_choice, "short-answer": shortAnswer } =
-          result.data.examPaper;
+        const { generatedPaper } = result.data;
 
-        // Transform the questions into the expected format
-        const questions: Question[] = [
-          ...multiple_choice.map(
-            (q: MultipleChoiceQuestion, index: number) => ({
-              questionId: `mcq-${index}`,
-              questionTitle: q.question,
-              questionType: "mcq" as const,
-              answer: q.answer,
-              hint: "", // Required by BaseQuestion interface
-              explanation: q.options.find((opt) =>
-                opt.option.startsWith(q.answer + ".")
-              )?.explanation,
-              mcqOptions: q.options.map((opt: MCQOption, optIndex: number) => {
-                const optionId = String.fromCharCode(65 + optIndex); // A, B, C, D
-                return {
-                  optionId,
-                  optionTitle: opt.option.substring(3), // Remove "A. ", "B. " etc
-                  optionValue: optionId,
-                  explanation: opt.explanation,
-                };
+        // Transform the questions into the expected format for our store
+        const questions: StoreQuestion[] = generatedPaper.question.map((q) => ({
+          questionId: q.questionId,
+          questionTitle: q.questionTitle,
+          questionType: q.questionType,
+          answer: q.answer || "",
+          hint: q.hint || "",
+          userAnswer: q.userAnswer || "",
+          learningResource: q.learningResource,
+          ...(q.questionType === "mcq"
+            ? {
+                mcqOptions:
+                  q.mcqOptions?.map((opt) => ({
+                    optionId: opt.optionId,
+                    optionTitle: opt.optionTitle,
+                    optionValue: opt.optionValue,
+                    explanation: opt.explanation,
+                  })) || [],
+              }
+            : {
+                explanation: q.explanation || "",
               }),
-            })
-          ),
-          ...shortAnswer.map((q: ShortAnswerQuestion, index: number) => ({
-            questionId: `sa-${index}`,
-            answer: q.answer,
-            questionTitle: q.question,
-            questionType: "short-answer" as const,
-            hint: "", // Required by BaseQuestion interface
-            explanation: q.answer,
-          })),
-        ];
+        })) as StoreQuestion[];
 
         // Load the questions into the store
-        loadQuestions("generated-paper", questions);
+        loadQuestions(generatedPaper.paperTitle, questions);
       } else {
         setError("Failed to generate exam paper");
       }
@@ -329,6 +325,7 @@ export default function PaperView() {
                           : undefined
                       }
                       isRevealed={progress?.isRevealed}
+                      learningResource={originalQuestion.learningResource}
                     />
                   </Box>
                 );
@@ -348,6 +345,7 @@ export default function PaperView() {
                     }
                     onAnswer={(answer) => answerQuestion(questionId, answer)}
                     userAnswer={progress?.userAnswer}
+                    learningResource={originalQuestion.learningResource}
                   />
                 </Box>
               );

@@ -13,6 +13,7 @@ type BaseQuestion = {
   questionTitle: string;
   userAnswer?: string;
   hint: string;
+  learningResource?: string;
 };
 
 type MCQQuestion = BaseQuestion & {
