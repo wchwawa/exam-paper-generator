@@ -82,7 +82,6 @@ export default function CreatePaper() {
             size="sm"
             id="title"
             placeholder="COMP9123 - Data Structure"
-            value=""
           />
         </Field.Root>
 
