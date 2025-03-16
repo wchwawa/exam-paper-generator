@@ -1,5 +1,6 @@
 "use client";
 
+import VideoPlayer from "@/app/components/VideoPlayer";
 import { Accordion, Alert, Box, Flex, Grid, Text } from "@chakra-ui/react";
 import { IconInfoCircle } from "@tabler/icons-react";
 import { FC, useEffect, useState } from "react";
@@ -10,6 +11,7 @@ const MCQOption: FC<{
   hint: string;
   status?: "correct" | "incorrect";
   isSelected?: boolean;
+
   onClick?: () => void;
 }> = ({ title, value, status, isSelected, onClick }) => {
   return (
@@ -79,6 +81,7 @@ interface MCQProps {
   userAnswer?: string | null;
   correctAnswer?: string;
   isRevealed?: boolean;
+  learningResource?: string;
 }
 
 export default function MCQ({
@@ -90,6 +93,7 @@ export default function MCQ({
   userAnswer,
   correctAnswer,
   isRevealed,
+  learningResource,
 }: MCQProps) {
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
 
@@ -159,6 +163,8 @@ export default function MCQ({
             </Alert.Content>
           </Alert.Root>
         )}
+
+      {learningResource && <VideoPlayer videoLink={learningResource} />}
     </Box>
   );
 }

@@ -1,28 +1,16 @@
-import { 
-  Annotation, 
-  StateGraph, 
-  START, 
-  END
-} from "@langchain/langgraph";
-import { 
-  ChatOpenAI 
-} from "@langchain/openai";
+import { Annotation, StateGraph, START, END } from "@langchain/langgraph";
+import { ChatOpenAI } from "@langchain/openai";
 import agentClient from "../../utils/openai/agentClient";
-import { 
-  HumanMessage, 
-  SystemMessage,
-} from "@langchain/core/messages";
-import { 
-  createReactAgent 
-} from "@langchain/langgraph/prebuilt";
-import { 
-  ToolNode 
-} from "@langchain/langgraph/prebuilt";
-import { 
-  DynamicStructuredTool 
-} from "@langchain/core/tools";
-import { generateExamQuestions, checkQuestionsQuality, responseFormatTool } from "@/Agents/advanceAgents/tools";
-import { v4 as uuidv4 } from 'uuid';
+import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { createReactAgent } from "@langchain/langgraph/prebuilt";
+import { ToolNode } from "@langchain/langgraph/prebuilt";
+import { DynamicStructuredTool } from "@langchain/core/tools";
+import {
+  generateExamQuestions,
+  checkQuestionsQuality,
+  responseFormatTool,
+} from "@/Agents/advanceAgents/tools";
+import { v4 as uuidv4 } from "uuid";
 import { writeFileSync, appendFileSync, existsSync, mkdirSync } from "fs";
 import path from "path";
 
@@ -51,7 +39,10 @@ class Logger {
       if (!existsSync(logDir)) {
         mkdirSync(logDir, { recursive: true });
       }
-      this.logFilePath = path.join(logDir, `agent-cluster-${this.sessionId}.log`);
+      this.logFilePath = path.join(
+        logDir,
+        `agent-cluster-${this.sessionId}.log`
+      );
       this.info(`Logging session started: ${this.sessionId}`);
     }
   }
@@ -177,7 +168,7 @@ interface QuestionOutputState {
   answer: string;
   q_type: QuestionType;
   learning_link: string;
-  options?: any[];  // 选择题选项
+  options?: any[]; // 选择题选项
   hint: string; // 解释
 }
 
@@ -218,9 +209,9 @@ const WeeklyStateAnnotation = Annotation.Root({
   }>(),
   generated_questions: Annotation<QuestionOutputState[]>({
     default: () => [],
-    reducer: (curr, update) => [...curr, ...update]
+    reducer: (curr, update) => [...curr, ...update],
   }),
-  supervisor_state: Annotation<SupervisorState | undefined>()
+  supervisor_state: Annotation<SupervisorState | undefined>(),
 });
 
 // 管理者状态注解
@@ -232,8 +223,10 @@ const ManagerStateAnnotation = Annotation.Root({
       // 如果更新包含单个周状态，将其添加到现有数组
       if (Array.isArray(update) && update.length === 1) {
         const updatedState = update[0];
-        const index = curr.findIndex(s => s.week_number === updatedState.week_number);
-        
+        const index = curr.findIndex(
+          (s) => s.week_number === updatedState.week_number
+        );
+
         if (index >= 0) {
           // 更新现有周状态
           const newStates = [...curr];
@@ -246,26 +239,26 @@ const ManagerStateAnnotation = Annotation.Root({
       }
       // 如果是完整替换，直接返回更新值
       return update;
-    }
+    },
   }),
   testPaper: Annotation<Record<string, any>>({
     default: () => ({}),
-    reducer: (curr, update) => ({ ...curr, ...update })
-  })
+    reducer: (curr, update) => ({ ...curr, ...update }),
+  }),
 });
 
 /**
  * 解析输入 JSON 到 SupervisorState
  */
 function parseInputJsonToSupervisorState(
-  input_json: Record<string, any>, 
-  total_weeks?: number, 
-  total_mcq?: number, 
+  input_json: Record<string, any>,
+  total_weeks?: number,
+  total_mcq?: number,
   total_essay?: number
 ): SupervisorState {
   logger.info("解析输入JSON到SupervisorState");
   logger.debug({ input_json, total_weeks, total_mcq, total_essay });
-  
+
   // 从 JSON 中获取统计信息
   if (total_mcq === undefined) {
     total_mcq = input_json.number_of_MCQ || 10;
@@ -273,7 +266,7 @@ function parseInputJsonToSupervisorState(
   if (total_essay === undefined) {
     total_essay = input_json.number_of_Essay || 3;
   }
-  
+
   const overall_number = (total_mcq || 0) + (total_essay || 0);
 
   // 从每个 weekN 提取内容，组装成周数据
@@ -305,31 +298,37 @@ function parseInputJsonToSupervisorState(
     statistics: {
       total_multiple_choice: total_mcq || 10,
       total_essay: total_essay || 3,
-      overall_number
+      overall_number,
     },
     weekly_topics,
-    input_json
+    input_json,
   };
-  
-  logger.info(`SupervisorState创建完成，总周数: ${supervisor_state.total_weeks}, 总题目数: ${supervisor_state.statistics.overall_number}`);
+
+  logger.info(
+    `SupervisorState创建完成，总周数: ${supervisor_state.total_weeks}, 总题目数: ${supervisor_state.statistics.overall_number}`
+  );
   return supervisor_state;
 }
 
 /**
  * 分配问题到各周
  */
-async function supervisorAssignQuestions(supervisor_state: SupervisorState): Promise<WeeklyState[]> {
+async function supervisorAssignQuestions(
+  supervisor_state: SupervisorState
+): Promise<WeeklyState[]> {
   logger.info("开始分配问题到各周");
   logger.debug({ supervisor_state });
-  
+
   const mcq_total = supervisor_state.statistics.total_multiple_choice;
   const essay_total = supervisor_state.statistics.total_essay;
   const weekly_states: WeeklyState[] = [];
-  
+
   // 创建提示
   const prompt = `
   ## Role ##
-  You are a teacher responsible for assigning the number of questions to each of ${supervisor_state.total_weeks} weeks.
+  You are a teacher responsible for assigning the number of questions to each of ${
+    supervisor_state.total_weeks
+  } weeks.
 
   ## Background ##
   1. The total number of questions is ${mcq_total + essay_total}.
@@ -339,8 +338,12 @@ async function supervisorAssignQuestions(supervisor_state: SupervisorState): Pro
   5. The weekly topics are: ${JSON.stringify(supervisor_state.weekly_topics)}
   
   ## Rule ##
-  1. The output format should be a valid JSON file with ${supervisor_state.total_weeks} weeks.
-  2. The sum of all the questions for each weekshould be equal to ${mcq_total + essay_total}.
+  1. The output format should be a valid JSON file with ${
+    supervisor_state.total_weeks
+  } weeks.
+  2. The sum of all the questions for each weekshould be equal to ${
+    mcq_total + essay_total
+  }.
   3. The sum of multiple choice questions for each week should be equal to ${mcq_total}.
   4. The sum of essay questions for each week should be equal to ${essay_total}.
   5. The output format of weekly topics should be:
@@ -348,7 +351,9 @@ async function supervisorAssignQuestions(supervisor_state: SupervisorState): Pro
       ["Key Point 1", "Key Point 2", "Key Point 3"],  # week1's key points
       ["Key Point 1", "Key Point 2", "Key Point 3"],  # week2's key points
       ...
-      ["Key Point 1", "Key Point 2", "Key Point 3"]   # week${supervisor_state.total_weeks}'s key points
+      ["Key Point 1", "Key Point 2", "Key Point 3"]   # week${
+        supervisor_state.total_weeks
+      }'s key points
   ]
 
   ## Output format ##
@@ -363,24 +368,26 @@ async function supervisorAssignQuestions(supervisor_state: SupervisorState): Pro
       ...
   }
   `;
-  
+
   // 使用 LLM 生成分配
-  const miniLLM = new ChatOpenAI({ model: "gpt-4o-mini", temperature: 0 }).bind({
-    response_format: { type: "json_object" }
-  });
+  const miniLLM = new ChatOpenAI({ model: "gpt-4o-mini", temperature: 0 }).bind(
+    {
+      response_format: { type: "json_object" },
+    }
+  );
   logger.info("调用LLM生成问题分配");
   const questions_distribution_raw = await miniLLM.invoke(prompt);
-  
+
   // 处理 LLM 响应
   let response_content = "";
-  if (typeof questions_distribution_raw.content === 'string') {
+  if (typeof questions_distribution_raw.content === "string") {
     response_content = questions_distribution_raw.content;
   } else {
     response_content = JSON.stringify(questions_distribution_raw);
   }
-  
+
   logger.debug({ response_content });
-  
+
   let response_json: Record<string, any> = {};
   try {
     // 尝试提取 JSON 部分
@@ -398,33 +405,34 @@ async function supervisorAssignQuestions(supervisor_state: SupervisorState): Pro
     const total_weeks = supervisor_state.total_weeks;
     for (let i = 1; i <= total_weeks; i++) {
       response_json[`week${i}`] = {
-        topics: supervisor_state.weekly_topics[i-1],
+        topics: supervisor_state.weekly_topics[i - 1],
         assigned_questions: {
           multiple_choice: Math.floor(mcq_total / total_weeks),
-          essay: Math.floor(essay_total / total_weeks)
-        }
+          essay: Math.floor(essay_total / total_weeks),
+        },
       };
     }
   }
-  
+
   // 构建周状态
   const total_weeks = supervisor_state.total_weeks;
   for (let i = 1; i <= total_weeks; i++) {
     const week_key = `week${i}`;
     let topics: string[] = [];
     let assigned: { multiple_choice: number; essay: number };
-    
+
     if (week_key in response_json) {
       // 如果 LLM 给了对应周的分配
       const info = response_json[week_key];
       // 如果 LLM 不给 topics，就 fallback 用原始 input_json 里的
-      topics = info.topics || supervisor_state.weekly_topics[i-1];
+      topics = info.topics || supervisor_state.weekly_topics[i - 1];
       const assigned_raw = info.assigned_questions || {};
-      
+
       // 确保分配了题目数量
-      let mcq = assigned_raw.multiple_choice || Math.floor(mcq_total / total_weeks);
+      let mcq =
+        assigned_raw.multiple_choice || Math.floor(mcq_total / total_weeks);
       let essay = assigned_raw.essay || Math.floor(essay_total / total_weeks);
-      
+
       // 验证题目数量大于0
       if (mcq <= 0) {
         mcq = Math.max(1, Math.floor(mcq_total / total_weeks));
@@ -432,10 +440,10 @@ async function supervisorAssignQuestions(supervisor_state: SupervisorState): Pro
       if (essay <= 0) {
         essay = Math.max(1, Math.floor(essay_total / total_weeks));
       }
-      
+
       assigned = {
         multiple_choice: mcq,
-        essay: essay
+        essay: essay,
       };
     } else {
       // fallback：如果 LLM 没给这周，均分
@@ -443,22 +451,22 @@ async function supervisorAssignQuestions(supervisor_state: SupervisorState): Pro
       const essay = Math.max(1, Math.floor(essay_total / total_weeks));
       assigned = {
         multiple_choice: mcq,
-        essay: essay
+        essay: essay,
       };
-      topics = supervisor_state.weekly_topics[i-1];
+      topics = supervisor_state.weekly_topics[i - 1];
     }
-    
+
     // 创建周状态
     const w_state: WeeklyState = {
       week_number: i,
       topics,
       assigned_questions: assigned,
-      generated_questions: []
+      generated_questions: [],
     };
-    
+
     weekly_states.push(w_state);
   }
-  
+
   logger.info(`问题分配完成，共${weekly_states.length}周`);
   logger.debug({ weekly_states });
   return weekly_states;
@@ -467,16 +475,18 @@ async function supervisorAssignQuestions(supervisor_state: SupervisorState): Pro
 /**
  * 使用 ReAct 代理生成本周的题目
  */
-async function weeklyGenerateQuestions(weekly_state: WeeklyState): Promise<WeeklyState> {
+async function weeklyGenerateQuestions(
+  weekly_state: WeeklyState
+): Promise<WeeklyState> {
   // 获取基本信息
   const week_num = weekly_state.week_number;
   logger.info(`开始为第${week_num}周生成题目`);
   logger.debug({ weekly_state });
-  
+
   const topics = weekly_state.topics;
   const mcq_count = weekly_state.assigned_questions.multiple_choice;
   const essay_count = weekly_state.assigned_questions.essay;
-  
+
   // 获取周内容
   let week_content = "";
   if (weekly_state.supervisor_state) {
@@ -486,17 +496,21 @@ async function weeklyGenerateQuestions(weekly_state: WeeklyState): Promise<Weekl
       week_content = input_json[week_key].content || "";
     }
   }
-  
+
   // 创建 ReAct 代理
-  const tools = [generateExamQuestions, checkQuestionsQuality, responseFormatTool];
+  const tools = [
+    generateExamQuestions,
+    checkQuestionsQuality,
+    responseFormatTool,
+  ];
   const toolNode = new ToolNode(tools);
-  
+
   logger.info("创建ReAct代理");
   const react_agent = createReactAgent({
     llm,
-    tools
+    tools,
   });
-  
+
   // 准备系统提示和用户指令
   const system_prompt = `
   ## Task ##
@@ -506,10 +520,10 @@ async function weeklyGenerateQuestions(weekly_state: WeeklyState): Promise<Weekl
   4. Finally, output the questions and learning resource links in JSON format
 
   `;
-  
+
   const user_instruction = `
   Please generate questions for week ${week_num}:
-  - Topics: ${topics.join(', ')}
+  - Topics: ${topics.join(", ")}
   - Multiple choice questions count: ${mcq_count}
   - Essay questions count: ${essay_count}
   - Week content: ${week_content.substring(0, 500)}...
@@ -517,105 +531,121 @@ async function weeklyGenerateQuestions(weekly_state: WeeklyState): Promise<Weekl
   **Important**:
    Only output the JSON format, DO NOT include any other text.
   `;
-  
+
   // 准备输入
   const inputs = {
     messages: [
       new SystemMessage(system_prompt),
-      new HumanMessage(user_instruction)
-    ]
+      new HumanMessage(user_instruction),
+    ],
   };
-  
+
   // 执行代理
   logger.info("执行ReAct代理生成题目");
   const result = await react_agent.invoke(inputs);
-  
+
   // 从结果中提取最终 JSON
   let final_output = "";
   const messages = result.messages;
   if (messages && messages.length > 0) {
     const lastMessage = messages[messages.length - 1];
-    if (typeof lastMessage.content === 'string') {
+    if (typeof lastMessage.content === "string") {
       final_output = lastMessage.content;
     } else {
       final_output = JSON.stringify(lastMessage.content);
     }
   }
 
-  
   // 处理选择题和问答题
   try {
-    const questions_data = JSON.parse(final_output.replace(/^```json\n/, '').replace(/\n```$/, ''));
-    console.log("====================*******questions_data****** ============================= ", questions_data);
-    
+    const questions_data = JSON.parse(
+      final_output.replace(/^```json\n/, "").replace(/\n```$/, "")
+    );
+    console.log(
+      "====================*******questions_data****** ============================= ",
+      questions_data
+    );
+
     // 处理选择题
     if (Array.isArray(questions_data.multiple_choice)) {
       logger.info(`处理${questions_data.multiple_choice.length}道选择题`);
       for (let i = 0; i < questions_data.multiple_choice.length; i++) {
         const mcq = questions_data.multiple_choice[i];
         weekly_state.generated_questions.push({
-          question: `[Week${week_num}] multiple choice question #${i+1}: ${mcq.question || ''}`,
+          question: `[Week${week_num}] multiple choice question #${i + 1}: ${
+            mcq.question || ""
+          }`,
           options: mcq.options || [],
           answer: mcq.answer || "",
           hint: mcq.hint || "",
           q_type: "multiple_choice",
-          learning_link: ""  // 空字符串，稍后填充
+          learning_link: "", // 空字符串，稍后填充
         });
       }
     }
-    
+
     // 处理问答题
     if (Array.isArray(questions_data.essay)) {
       logger.info(`处理${questions_data.essay.length}道问答题`);
       for (let i = 0; i < questions_data.essay.length; i++) {
         const essay = questions_data.essay[i];
         weekly_state.generated_questions.push({
-          question: `[Week${week_num}] essay question #${i+1}: ${essay.question || ''}`,
+          question: `[Week${week_num}] essay question #${i + 1}: ${
+            essay.question || ""
+          }`,
           answer: essay.answer || "",
           hint: essay.hint || "",
           q_type: "essay",
-          learning_link: ""  // 空字符串，稍后填充
+          learning_link: "", // 空字符串，稍后填充
         });
       }
     }
   } catch (e) {
     // 如果出现任何异常，使用备用方案
     logger.error(`第${week_num}周题目处理失败: ${e}, 使用备用方案`);
-    
+
     // 备用方案
     for (let i = 0; i < mcq_count; i++) {
       weekly_state.generated_questions.push({
-        question: `[Week${week_num}] multiple choice question #${i+1}: about ${topics.join('/')}`,
+        question: `[Week${week_num}] multiple choice question #${
+          i + 1
+        }: about ${topics.join("/")}`,
         options: ["A. option1", "B. option2", "C. option3", "D. option4"],
         answer: "A",
         hint: "none",
         q_type: "multiple_choice",
-        learning_link: ""
+        learning_link: "",
       });
     }
-    
+
     for (let i = 0; i < essay_count; i++) {
       weekly_state.generated_questions.push({
-        question: `[Week${week_num}] essay question #${i+1}: please discuss the importance of ${topics.join('/')}`,
-        answer: `reference answer about ${topics.join('/')}`,
+        question: `[Week${week_num}] essay question #${
+          i + 1
+        }: please discuss the importance of ${topics.join("/")}`,
+        answer: `reference answer about ${topics.join("/")}`,
         hint: "none",
         q_type: "essay",
-        learning_link: ""
+        learning_link: "",
       });
     }
   }
-  
-  logger.info(`第${week_num}周题目生成完成，共${weekly_state.generated_questions.length}道题`);
+
+  logger.info(
+    `第${week_num}周题目生成完成，共${weekly_state.generated_questions.length}道题`
+  );
   return weekly_state;
 }
 
 /**
  * 汇总所有周的结果
  */
-async function managerCollectQuestions(manager_state: typeof ManagerStateAnnotation.State): Promise<typeof ManagerStateAnnotation.State> {
+async function managerCollectQuestions(
+  manager_state: typeof ManagerStateAnnotation.State
+): Promise<typeof ManagerStateAnnotation.State> {
   logger.info("开始汇总所有周的结果");
   logger.debug({ manager_state });
-  
+
   // 这里假设我们统一设置
   const paper_id = uuidv4();
   const paper_title = "Test Paper";
@@ -624,23 +654,25 @@ async function managerCollectQuestions(manager_state: typeof ManagerStateAnnotat
   const testPaper: Record<string, any> = {
     paperId: paper_id,
     paperTitle: paper_title,
-    question: []
+    question: [],
   };
 
   // 为了给 questionId 编号，这里建一个计数器
   let question_id_counter = 1;
-  
+
   // 为每个题目查找学习资源
   logger.info("为所有题目查找学习资源");
   const all_questions: QuestionOutputState[] = [];
   for (const week_state of manager_state.weekly_states) {
     all_questions.push(...week_state.generated_questions);
   }
-  
+
   // 为每个题目添加学习资源 (这里简化处理，不实际调用 Tavily API)
   for (const q of all_questions) {
     // 在实际应用中，这里应该调用搜索 API
-    q.learning_link = `https://www.youtube.com/results?search_query=${encodeURIComponent(q.question)}`;
+    q.learning_link = `https://www.youtube.com/results?search_query=${encodeURIComponent(
+      q.question
+    )}`;
   }
 
   // 遍历所有周的题目，把它们整合到一个大的 question[] 列表
@@ -655,32 +687,36 @@ async function managerCollectQuestions(manager_state: typeof ManagerStateAnnotat
         for (const opt_str of q.options || []) {
           // 记录选项处理过程
           logger.debug(`处理选项: ${JSON.stringify(opt_str)}`);
-          
+
           // 处理不同格式的选项
           let optionId = "X";
           let optionTitle = "";
           let optionExplanation = "";
-          
+
           // 如果选项是对象格式 {option: "A. xxx", explanation: "xxx"}
-          if (typeof opt_str === 'object' && opt_str !== null && 'option' in opt_str) {
+          if (
+            typeof opt_str === "object" &&
+            opt_str !== null &&
+            "option" in opt_str
+          ) {
             const optText = opt_str.option;
             optionExplanation = opt_str.explanation || "";
-            
+
             // 从选项文本中提取ID和标题
             const match = optText.match(/^([A-D])\.?\s*(.*)/);
             if (match) {
-              optionId = match[1];  // "A"
-              optionTitle = match[2];  // "选项内容"
+              optionId = match[1]; // "A"
+              optionTitle = match[2]; // "选项内容"
             } else {
               optionTitle = optText;
             }
-          } 
+          }
           // 如果选项是字符串格式 "A. xxx"
-          else if (typeof opt_str === 'string') {
+          else if (typeof opt_str === "string") {
             const match = opt_str.match(/^([A-D])\.?\s*(.*)/);
             if (match) {
-              optionId = match[1];  // "A"
-              optionTitle = match[2];  // "选项内容"
+              optionId = match[1]; // "A"
+              optionTitle = match[2]; // "选项内容"
             } else {
               optionTitle = opt_str;
             }
@@ -689,12 +725,12 @@ async function managerCollectQuestions(manager_state: typeof ManagerStateAnnotat
           else {
             optionTitle = String(opt_str);
           }
-          
+
           mcq_options.push({
             optionId: optionId,
             optionTitle: optionTitle,
             optionValue: optionTitle,
-            explanation: optionExplanation
+            explanation: optionExplanation,
           });
         }
 
@@ -703,12 +739,12 @@ async function managerCollectQuestions(manager_state: typeof ManagerStateAnnotat
           questionTitle: q.question,
           questionType: "mcq",
           answer: q.answer,
-          userAnswer: "",   // 先留空或默认值
-          hint: q.hint || "",  // 这里把整个question-level的explanation放在hint上
+          userAnswer: "", // 先留空或默认值
+          hint: q.hint || "", // 这里把整个question-level的explanation放在hint上
           mcqOptions: mcq_options,
-          learningResource: q.learning_link  // 添加学习资源链接
+          learningResource: q.learning_link, // 添加学习资源链接
         };
-        
+
         testPaper.question.push(new_question);
         question_id_counter += 1;
       } else if (q.q_type === "essay") {
@@ -717,11 +753,11 @@ async function managerCollectQuestions(manager_state: typeof ManagerStateAnnotat
           questionId: String(question_id_counter),
           questionTitle: q.question,
           questionType: "short-answer",
-          userAnswer: "",  // 先留空或默认值
-          hint: q.answer,  // 简答题的答案放在 hint
-          learningResource: q.learning_link  // 添加学习资源链接
+          userAnswer: "", // 先留空或默认值
+          hint: q.answer, // 简答题的答案放在 hint
+          learningResource: q.learning_link, // 添加学习资源链接
         };
-        
+
         testPaper.question.push(new_question);
         question_id_counter += 1;
       }
@@ -735,7 +771,7 @@ async function managerCollectQuestions(manager_state: typeof ManagerStateAnnotat
   // 更新 manager_state 中的 testPaper
   return {
     ...manager_state,
-    testPaper
+    testPaper,
   };
 }
 
@@ -744,18 +780,20 @@ async function managerCollectQuestions(manager_state: typeof ManagerStateAnnotat
  * - 调用 supervisor_assign_questions
  * - 写回 manager_state
  */
-async function supervisorNodeFn(manager_state: typeof ManagerStateAnnotation.State): Promise<typeof ManagerStateAnnotation.State> {
+async function supervisorNodeFn(
+  manager_state: typeof ManagerStateAnnotation.State
+): Promise<typeof ManagerStateAnnotation.State> {
   logger.info("执行supervisor节点");
   const all_w = await supervisorAssignQuestions(manager_state.supervisor_state);
-  
+
   // 为每个周状态添加对supervisor_state的引用，以便访问原始内容
   for (const week_state of all_w) {
     week_state.supervisor_state = manager_state.supervisor_state;
   }
-  
+
   return {
     ...manager_state,
-    weekly_states: all_w
+    weekly_states: all_w,
   };
 }
 
@@ -763,13 +801,15 @@ async function supervisorNodeFn(manager_state: typeof ManagerStateAnnotation.Sta
  * 返回一个可调用函数, 在执行时对 manager_state 里的第 i 周进行题目生成
  */
 function weeklyNodeFn(week_index: number) {
-  return async (manager_state: typeof ManagerStateAnnotation.State): Promise<Partial<typeof ManagerStateAnnotation.State>> => {
+  return async (
+    manager_state: typeof ManagerStateAnnotation.State
+  ): Promise<Partial<typeof ManagerStateAnnotation.State>> => {
     logger.info(`执行第${week_index}周节点`);
     const old_week_state = manager_state.weekly_states[week_index - 1];
     const new_week_state = await weeklyGenerateQuestions(old_week_state);
     // 只返回更新的周状态，而不是整个manager_state
     return {
-      weekly_states: [new_week_state]
+      weekly_states: [new_week_state],
     };
   };
 }
@@ -777,7 +817,9 @@ function weeklyNodeFn(week_index: number) {
 /**
  * 最后汇总所有周的结果
  */
-async function managerCollectNodeFn(manager_state: typeof ManagerStateAnnotation.State): Promise<typeof ManagerStateAnnotation.State> {
+async function managerCollectNodeFn(
+  manager_state: typeof ManagerStateAnnotation.State
+): Promise<typeof ManagerStateAnnotation.State> {
   logger.info("执行manager汇总节点");
   return await managerCollectQuestions(manager_state);
 }
@@ -818,7 +860,7 @@ function buildGraphWithWeeks(total_weeks: number) {
   // week_1_node..week_{total_weeks}_node -> manager_collect_node
   for (let i = 1; i <= total_weeks; i++) {
     const weekNode = `week_${i}_node`;
-  
+
     // @ts-ignore - 忽略类型错误，实际使用时需要根据API文档调整
     builder.addEdge(weekNode, managerCollectNode);
   }
@@ -831,30 +873,38 @@ function buildGraphWithWeeks(total_weeks: number) {
 }
 
 // 主函数
-async function callAgentCluster(input: any, total_weeks: number, total_mcq: number, total_essay: number) {
+async function callAgentCluster(
+  input: any,
+  total_weeks: number,
+  total_mcq: number,
+  total_essay: number
+) {
   logger.info("开始执行Agent Cluster");
   logger.debug({ input, total_weeks, total_mcq, total_essay });
 
-  const sup_state = parseInputJsonToSupervisorState(input, total_weeks, total_mcq, total_essay);
-  
+  const sup_state = parseInputJsonToSupervisorState(
+    input,
+    total_weeks,
+    total_mcq,
+    total_essay
+  );
+
   const graph = buildGraphWithWeeks(total_weeks);
-  
+
   logger.info("图构建成功");
-  
+
   const init_manager_state = {
     supervisor_state: sup_state,
-    weekly_states: []
+    weekly_states: [],
   };
 
   logger.info("开始执行图");
   const final_state = await graph.invoke(init_manager_state);
-  
+
   logger.info("图执行完成");
   logger.debug({ final_state });
-  
+
   return final_state;
 }
 
-export {
-  callAgentCluster
-};
+export { callAgentCluster };

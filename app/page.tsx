@@ -127,8 +127,8 @@ export default function Home() {
           Exam Paper Generator
         </Heading>
         <Text mt={3} color="gray.500">
-          Simply add your lecture file, we'll design the practice exam paper for
-          you
+          Simply add your lecture file, we&apos;ll design the practice exam
+          paper for you
         </Text>
         <Box
           bg="white"

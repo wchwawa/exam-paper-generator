@@ -16,41 +16,55 @@ import {
   Text,
   Spinner,
 } from "@chakra-ui/react";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryState } from "nuqs";
-import { Question } from "@/store/paperStore";
+import { Question as StoreQuestion } from "@/store/paperStore";
 
 interface MCQOption {
-  option: string;
+  optionId: string;
+  optionTitle: string;
+  optionValue: string;
   explanation: string;
 }
 
-interface MultipleChoiceQuestion {
-  question: string;
-  options: MCQOption[];
-  answer: string;
+interface APIQuestion {
+  questionId: string;
+  questionTitle: string;
+  questionType: "mcq" | "short-answer";
+  answer?: string;
+  userAnswer: string;
+  hint?: string;
+  explanation?: string;
+  mcqOptions?: MCQOption[];
+  learningResource?: string;
 }
 
-interface ShortAnswerQuestion {
-  question: string;
-  answer: string;
+interface GeneratedPaper {
+  paperId: string;
+  paperTitle: string;
+  question: APIQuestion[];
 }
 
 interface APIResponse {
   success: boolean;
   message: string;
   data: {
-    examPaper: {
-      multiple_choice: MultipleChoiceQuestion[];
-      "short-answer": ShortAnswerQuestion[];
-    };
+    generatedPaper: GeneratedPaper;
   };
 }
 
 // Example questions data
 
-export default function PaperView() {
+export default function PaperViewCheck() {
+  return (
+    <Suspense>
+      <PaperView />
+    </Suspense>
+  );
+}
+
+function PaperView() {
   const {
     loadQuestions,
     answerQuestion,
@@ -63,6 +77,9 @@ export default function PaperView() {
 
   const router = useRouter();
 
+  const [paperTitle, setPaperTitle] = useState("");
+
+  useEffect(() => setPaperTitle(localStorage.getItem("title") ?? ""), []);
   const [folderId] = useQueryState("folderId");
   const [mcqAnswerNumber] = useQueryState("mcqAnswerNumber");
   const [shortAnswerNumber] = useQueryState("shortAnswerNumber");
@@ -89,44 +106,34 @@ export default function PaperView() {
       const result: APIResponse = await response.json();
 
       if (result.success) {
-        const { multiple_choice, "short-answer": shortAnswer } =
-          result.data.examPaper;
+        const { generatedPaper } = result.data;
 
-        // Transform the questions into the expected format
-        const questions: Question[] = [
-          ...multiple_choice.map(
-            (q: MultipleChoiceQuestion, index: number) => ({
-              questionId: `mcq-${index}`,
-              questionTitle: q.question,
-              questionType: "mcq" as const,
-              answer: q.answer,
-              hint: "", // Required by BaseQuestion interface
-              explanation: q.options.find((opt) =>
-                opt.option.startsWith(q.answer + ".")
-              )?.explanation,
-              mcqOptions: q.options.map((opt: MCQOption, optIndex: number) => {
-                const optionId = String.fromCharCode(65 + optIndex); // A, B, C, D
-                return {
-                  optionId,
-                  optionTitle: opt.option.substring(3), // Remove "A. ", "B. " etc
-                  optionValue: optionId,
-                  explanation: opt.explanation,
-                };
+        // Transform the questions into the expected format for our store
+        const questions: StoreQuestion[] = generatedPaper.question.map((q) => ({
+          questionId: q.questionId,
+          questionTitle: q.questionTitle,
+          questionType: q.questionType,
+          answer: q.answer || "",
+          hint: q.hint || "",
+          userAnswer: q.userAnswer || "",
+          learningResource: q.learningResource,
+          ...(q.questionType === "mcq"
+            ? {
+                mcqOptions:
+                  q.mcqOptions?.map((opt) => ({
+                    optionId: opt.optionId,
+                    optionTitle: opt.optionTitle,
+                    optionValue: opt.optionValue,
+                    explanation: opt.explanation,
+                  })) || [],
+              }
+            : {
+                explanation: q.explanation || "",
               }),
-            })
-          ),
-          ...shortAnswer.map((q: ShortAnswerQuestion, index: number) => ({
-            questionId: `sa-${index}`,
-            answer: q.answer,
-            questionTitle: q.question,
-            questionType: "short-answer" as const,
-            hint: "", // Required by BaseQuestion interface
-            explanation: q.answer,
-          })),
-        ];
+        })) as StoreQuestion[];
 
         // Load the questions into the store
-        loadQuestions("generated-paper", questions);
+        loadQuestions(generatedPaper.paperTitle, questions);
       } else {
         setError("Failed to generate exam paper");
       }
@@ -272,7 +279,7 @@ export default function PaperView() {
         boxShadow="md"
         className="page-header"
       >
-        <Heading>Data Structure and Algorithm</Heading>
+        <Heading>{paperTitle}</Heading>
         <Group spaceX={2}>
           <Tag.Root>
             <Tag.Label>AI Generated Practice Exam</Tag.Label>
@@ -292,7 +299,7 @@ export default function PaperView() {
           className="bg-white flex-1 print-content"
         >
           <Heading size="2xl" mb={6}>
-            Data Structure And Algorithm Practice Exam
+            {paperTitle}
           </Heading>
 
           <section className="flex flex-col gap-5">
@@ -329,6 +336,7 @@ export default function PaperView() {
                           : undefined
                       }
                       isRevealed={progress?.isRevealed}
+                      learningResource={originalQuestion.learningResource}
                     />
                   </Box>
                 );
@@ -348,6 +356,7 @@ export default function PaperView() {
                     }
                     onAnswer={(answer) => answerQuestion(questionId, answer)}
                     userAnswer={progress?.userAnswer}
+                    learningResource={originalQuestion.learningResource}
                   />
                 </Box>
               );
@@ -405,6 +414,26 @@ export default function PaperView() {
             <Button variant="outline" w="100%" disabled={isGenerating}>
               {isGenerating && <Spinner size="sm" mr={2} />}
               {isGenerating ? "Generating PDF..." : "Download as PDF"}
+            </Button>
+            <Box borderBottom="1px solid" borderColor="gray.200" />
+            <Button
+              variant="outline"
+              w="100%"
+              onClick={() => {
+                setIsTimerRunning(false);
+                setElapsedTime(0);
+                startGenerate(new AbortController().signal);
+              }}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Spinner size="sm" mr={2} />
+                  Regenerating...
+                </>
+              ) : (
+                "Regenerate Paper"
+              )}
             </Button>
             <Box borderBottom="1px solid" borderColor="gray.200" />
             <Switch.Root

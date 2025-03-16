@@ -17,13 +17,22 @@ import { useForm } from "react-hook-form";
 
 import { useQueryState } from "nuqs";
 import { useRouter } from "next/navigation";
+import { Suspense } from "react";
 
 interface CreatePaperForm {
   mcqAnswerNumber: number;
   shortAnswerNumber: number;
 }
 
-export default function CreatePaper() {
+export default function CreatePaperPage() {
+  return (
+    <Suspense>
+      <CreatePaper />
+    </Suspense>
+  );
+}
+
+function CreatePaper() {
   const router = useRouter();
   const [folderUid] = useQueryState("folderUid");
 
@@ -72,6 +81,18 @@ export default function CreatePaper() {
         <Heading mt={2} fontSize="3xl" fontWeight="medium">
           Create New Paper
         </Heading>
+
+        <Field.Root>
+          <Field.Label htmlFor="folderName" mt={3}>
+            <Span>Title Name</Span>
+          </Field.Label>
+          <Input
+            onChange={(e) => localStorage.setItem("title", e.target.value)}
+            size="sm"
+            id="title"
+            placeholder="COMP9123 - Data Structure"
+          />
+        </Field.Root>
 
         <form onSubmit={handleSubmit(onSubmit)}>
           <Text mt={3}>How many questions would you like to have?</Text>
