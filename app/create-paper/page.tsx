@@ -17,13 +17,22 @@ import { useForm } from "react-hook-form";
 
 import { useQueryState } from "nuqs";
 import { useRouter } from "next/navigation";
+import { Suspense } from "react";
 
 interface CreatePaperForm {
   mcqAnswerNumber: number;
   shortAnswerNumber: number;
 }
 
-export default function CreatePaper() {
+export default function CreatePaperPage() {
+  return (
+    <Suspense>
+      <CreatePaper />
+    </Suspense>
+  );
+}
+
+function CreatePaper() {
   const router = useRouter();
   const [folderUid] = useQueryState("folderUid");
 

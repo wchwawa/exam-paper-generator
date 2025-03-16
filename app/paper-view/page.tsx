@@ -16,7 +16,7 @@ import {
   Text,
   Spinner,
 } from "@chakra-ui/react";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryState } from "nuqs";
 import { Question as StoreQuestion } from "@/store/paperStore";
@@ -56,7 +56,15 @@ interface APIResponse {
 
 // Example questions data
 
-export default function PaperView() {
+export default function PaperViewCheck() {
+  return (
+    <Suspense>
+      <PaperView />
+    </Suspense>
+  );
+}
+
+function PaperView() {
   const {
     loadQuestions,
     answerQuestion,
@@ -69,7 +77,9 @@ export default function PaperView() {
 
   const router = useRouter();
 
-  const [paperTitle] = useState(localStorage.getItem("title"));
+  const [paperTitle, setPaperTitle] = useState("");
+
+  useEffect(() => setPaperTitle(localStorage.getItem("title") ?? ""), []);
   const [folderId] = useQueryState("folderId");
   const [mcqAnswerNumber] = useQueryState("mcqAnswerNumber");
   const [shortAnswerNumber] = useQueryState("shortAnswerNumber");

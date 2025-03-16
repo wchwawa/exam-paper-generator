@@ -48,7 +48,7 @@ export const usePdfGenerator = () => {
       pdf.setFontSize(20);
       pdf.text(title, 20, 20);
 
-      let position = 30;
+      const position = 30;
 
       // Add content
       pdf.addImage(
