@@ -305,7 +305,7 @@ function parseInputJsonToSupervisorState(
   };
 
   logger.info(
-    `SupervisorState创建完成，总周数: ${supervisor_state.total_weeks}, 总题目数: ${supervisor_state.statistics.overall_number}`
+    `SupervisorState创建完成总周数: ${supervisor_state.total_weeks}, 总题目数: ${supervisor_state.statistics.overall_number}`
   );
   return supervisor_state;
 }

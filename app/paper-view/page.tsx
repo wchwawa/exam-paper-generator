@@ -7,7 +7,6 @@ import { usePdfGenerator } from "../hooks/usePdfGenerator";
 import {
   Box,
   Button,
-  Card,
   Flex,
   Group,
   Heading,
