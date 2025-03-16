@@ -348,7 +348,7 @@ function PaperView() {
                 <Box key={questionId} className="question-card">
                   <SimpleAnswerQuestion
                     questionNumber={index + 1}
-                    hint={originalQuestion.hint}
+                    hint={progress?.isRevealed ? originalQuestion.hint : ""}
                     title={`${index + 1}. ${originalQuestion.questionTitle}`}
                     explanation={
                       progress?.isRevealed &&

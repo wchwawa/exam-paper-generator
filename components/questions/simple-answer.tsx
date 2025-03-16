@@ -34,7 +34,7 @@ const SimpleAnswerQuestion: FC<{
           <Accordion.Item value="1">
             <Accordion.ItemTrigger>
               <Flex flex="1">
-                <IconInfoCircle /> hint
+                <IconInfoCircle /> Example Answer
               </Flex>
               <Accordion.ItemIndicator />
             </Accordion.ItemTrigger>
