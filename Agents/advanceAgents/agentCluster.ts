@@ -13,8 +13,6 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { writeFileSync, appendFileSync, existsSync, mkdirSync } from "fs";
 import path from "path";
-import { totalmem } from "os";
-import { number } from "zod";
 
 /**
  * Logger class for structured logging with different log levels and file output
@@ -151,7 +149,7 @@ class Logger {
 
 // 创建全局logger实例
 const logger = new Logger({
-  logLevel: "debug",
+  logLevel: "info",
   logToFile: true,
   logDir: "./logs/advanceAgents",
 });
@@ -254,33 +252,23 @@ const ManagerStateAnnotation = Annotation.Root({
  */
 function parseInputJsonToSupervisorState(
   input_json: Record<string, any>,
-  total_weeks?: any,
-  total_mcq?: any,
-  total_short_answer?: any
+  total_weeks?: number,
+  total_mcq?: number,
+  total_short_answer?: number
 ): SupervisorState {
   logger.info("解析输入JSON到SupervisorState");
-  logger.debug({
-    input_json,
-    total_weeks,
-    total_mcq,
-    total_short_answer,
-  });
-  if (total_weeks === undefined) {
-    total_weeks = Number(input_json.total_weeks);
-  }
+  logger.debug({ input_json, total_weeks, total_mcq, total_short_answer });
+
+  // 从 JSON 中获取统计信息
   if (total_mcq === undefined) {
-    total_mcq = Number(input_json.number_of_MCQ);
+    total_mcq = input_json.number_of_MCQ || 10;
   }
   if (total_short_answer === undefined) {
-    total_short_answer = Number(input_json.number_of_short_answer);
+    total_short_answer = input_json.number_of_short_answer || 3;
   }
-  total_weeks = Number(total_weeks);
-  total_mcq = Number(total_mcq);
-  total_short_answer = Number(total_short_answer);
-  const overall_number = total_mcq + total_short_answer;
-  logger.info(
-    `total_mcq: ${total_mcq}, total_short_answer: ${total_short_answer},overall_number: ${overall_number}`
-  );
+
+  const overall_number = (total_mcq || 0) + (total_short_answer || 0);
+
   // 从每个 weekN 提取内容，组装成周数据
   const weekly_topics: string[][] = [];
   for (let i = 1; i <= (total_weeks || 3); i++) {
@@ -665,7 +653,6 @@ async function managerCollectQuestions(
 ): Promise<typeof ManagerStateAnnotation.State> {
   logger.info("开始汇总所有周的结果");
   logger.debug({ manager_state });
-  logger.info(`manager_state: ${JSON.stringify(manager_state)}`);
 
   // 这里假设我们统一设置
   const paper_id = uuidv4();
