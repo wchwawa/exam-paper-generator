@@ -73,6 +73,19 @@ export default function CreatePaper() {
           Create New Paper
         </Heading>
 
+        <Field.Root>
+          <Field.Label htmlFor="folderName" mt={3}>
+            <Span>Title Name</Span>
+          </Field.Label>
+          <Input
+            onChange={(e) => localStorage.setItem("title", e.target.value)}
+            size="sm"
+            id="title"
+            placeholder="COMP9123 - Data Structure"
+            value=""
+          />
+        </Field.Root>
+
         <form onSubmit={handleSubmit(onSubmit)}>
           <Text mt={3}>How many questions would you like to have?</Text>
 
