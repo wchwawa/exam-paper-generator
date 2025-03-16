@@ -406,6 +406,26 @@ export default function PaperView() {
               {isGenerating ? "Generating PDF..." : "Download as PDF"}
             </Button>
             <Box borderBottom="1px solid" borderColor="gray.200" />
+            <Button
+              variant="outline"
+              w="100%"
+              onClick={() => {
+                setIsTimerRunning(false);
+                setElapsedTime(0);
+                startGenerate(new AbortController().signal);
+              }}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Spinner size="sm" mr={2} />
+                  Regenerating...
+                </>
+              ) : (
+                "Regenerate Paper"
+              )}
+            </Button>
+            <Box borderBottom="1px solid" borderColor="gray.200" />
             <Switch.Root
               checked={isMarkingRevealed}
               onCheckedChange={(details) => {
