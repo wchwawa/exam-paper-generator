@@ -202,6 +202,7 @@ function PaperView() {
         <Flex direction="column" align="center" gap={4}>
           <Spinner size="xl" />
           <Text>Generating your exam paper...</Text>
+          <Text>It might take up to 2 minutes, be patient...</Text>
         </Flex>
       </Box>
     );
