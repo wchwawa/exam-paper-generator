@@ -1,3 +1,5 @@
+#server is currently DOWN...
+
 # Coding Rules 🐮
 
 ## 1. Pull before coding!!
